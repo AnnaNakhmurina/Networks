@@ -1,3 +1,5 @@
+
+
 setwd("~/Networks")
 load("sharkwatch")
 load("file.list.13fg")
@@ -7,10 +9,10 @@ load("file.list.13fg")
 # sharkwatch<- sharkwatch[!(sharkwatch$campaign_status == "Open"), ]
 
 #save this database
-save(sharkwatch, file="sharkwatch")
+# save(sharkwatch, file="sharkwatch")
 
 
-list.shark <-  unique(sharkwatch$dissident_group) 
+list.shark <-  unique(sharkwatch$dissident_group) # Create the list of activist names. activist == dissident
 fund.data <- unique( file.list.13fg[,c(1,3)] )
 fund.data$company_name.long <-  toupper(  gsub(",|\\.|'|\\?|/|-", "", fund.data$company_name) )
 
