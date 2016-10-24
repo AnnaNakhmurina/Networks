@@ -8,7 +8,7 @@ library(data.table)
 library(gtools)
 
   
-  setwd("~/Networks")
+setwd("~/Networks/Analysis")
   
 load("file.list.13f")
 list_raw <- filter(file.list.13f, date_filed < "2013-12-31")
@@ -16,7 +16,7 @@ list_raw <- filter(list_raw, date_filed > "2003-12-31")
 head_list <- head(list_raw)
 list <- list_raw
 
-setwd("~/Networks/Data/13f_test")
+setwd("~/Networks/Analysis/Data/13f_test")
 
 list$file_name <- as.character(list$file_name) #turn the path into a character from a factor
 list$form_type <- gsub(",","",list$form_type) #get rid of commas in names so that we can save as csv without quotes
