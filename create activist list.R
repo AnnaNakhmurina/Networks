@@ -1,21 +1,15 @@
 
+# This code performs separating the fund names string and matching of the fund names to its CIKs
 
-setwd("~/Networks")
+setwd("~/Networks/Analysis")
+library(dplyr)
+library(plyr)
 load("sharkwatch")
 load("file.list.13fg")
-
-#Delete open campaigns! 
-# sharkwatch<- sharkwatch[!(is.na(sharkwatch$campaign_status)), ]
-# sharkwatch<- sharkwatch[!(sharkwatch$campaign_status == "Open"), ]
-
-#save this database
-# save(sharkwatch, file="sharkwatch")
-
 
 list.shark <-  unique(sharkwatch$dissident_group) # Create the list of activist names. activist == dissident
 fund.data <- unique( file.list.13fg[,c(1,3)] )
 fund.data$company_name.long <-  toupper(  gsub(",|\\.|'|\\?|/|-", "", fund.data$company_name) )
-
 
 # Test how well it is searched
 
@@ -92,14 +86,14 @@ for ( i in 1:nrow(delim.shark) ){
   
   print(i)
   
-candidate.string <-  delim.shark$long[i]
+  candidate.string <-  delim.shark$long[i]
 
- s.vector =  unlist( strsplit( candidate.string, ";") )
+  s.vector =  unlist( strsplit( candidate.string, ";") )
  
- # for each element of the vector, copy a string: 
- string <- delim.shark[i , !(names(delim.shark) %in% c("long"))]
+  # for each element of the vector, copy a string: 
+  string <- delim.shark[i , !(names(delim.shark) %in% c("long"))]
  
- cleaned <- data.frame()
+  cleaned <- data.frame()
  
  for (company in 1:length(s.vector) ){
    
@@ -145,10 +139,24 @@ matched.clean.long = unique(matched.clean.long)
 
 clean.shark.partial <- merge(cleaned.shark, matched.clean.long, by="activist.name", all=TRUE)
 
-setwd("~/Networks")
 save(clean.shark.partial, file="clean.shark.partial")
-load("clean.shark.partial")
 
-a <- clean.shark.partial[c("activist.name","cik","announce_date", "date_original_13d_filed", 
-                           "dissident_board_seats_wongranted_date", "end_date", "meeting_date",
-                           "proxy_fight_announce_date", "outcome", "campaign_status")]
+
+load("clean.shark.partial")
+# a <- clean.shark.partial[c("activist.name","cik","announce_date", "date_original_13d_filed", 
+                           # "dissident_board_seats_wongranted_date", "end_date", "meeting_date",
+                           # "proxy_fight_announce_date", "outcome", "campaign_status")]
+
+second_part=read.csv("shark_matched_cut_135_2.csv")
+second_part = unique(second_part)
+second_part = second_part[c("names_tomatch", "names_split_full", "cik", "ind.workplace")]
+names(second_part) = c("dissident_group", "activist.name", "cik", "cik_workplace")
+
+shark_bind <- merge(second_part, sharkwatch, by ="dissident_group")
+shark_bind=unique(shark_bind)
+
+clean.shark.final = rbind.fill(clean.shark.partial, shark_bind)
+clean.shark.final=unique(clean.shark.final)
+
+
+save(clean.shark.final, file="clean.shark.final")

@@ -1,17 +1,17 @@
 rm(list=ls())
-setwd("~/Networks")
-load("clean.shark.partial")
+setwd("~/Networks/Analysis")
+load("clean.shark.final")
 
-to.classify = clean.shark.partial[c("company_name", "campaign_id",
-                                    "dissident_tactic", "outcome", 
-                                    "announce_date", "dissident_group")]
-to.classify = unique(to.classify)
-to.classify.2015 =to.classify[(to.classify$announce_date> "2014-12-31"),]
-write.csv(to.classify.2015, file="to.classify.2015.csv")
+# to.classify = clean.shark.final[c("company_name", "campaign_id",
+#                                     "dissident_tactic", "outcome", 
+#                                     "announce_date", "dissident_group")]
+# to.classify = unique(to.classify)
+# to.classify.2015 =to.classify[(to.classify$announce_date> "2014-12-31"),]
+# write.csv(to.classify.2015, file="to.classify.2015.csv")
 
 # # Select the subsample of data that corresponds to all campaigns that were going of after 
 # # the start of 2015
-# shark.sub.2015 = clean.shark.partial[!is.na(clean.shark.partial$dissident_board_seats_sought),]
+# shark.sub.2015 = clean.shark.final[!is.na(clean.shark.final$dissident_board_seats_sought),]
 # shark.sub.2015 = shark.sub.2015[(shark.sub.2015$announce_date> "2014-12-31"),]
 # 
 # out <- shark.sub.2015[c("activist.name","company_name","board_seats_up", "dissident_board_seats_sought",
@@ -27,7 +27,7 @@ c.2015 <- classified.2015[c("campaign_id","activist_objective_1","success_object
                             "Board.seats.granted.if.objective.is.not.disclosed","Board.seats.up",
                             "activist_objective_2","success_objective_2","activist_objective_3",
                             "success_objective_3")]
-data = merge(c.2015, clean.shark.partial, by="campaign_id")
+data = merge(c.2015, clean.shark.final, by="campaign_id")
 
 shark.sub.2015 <- data[which(data$activist_objective_1 != 
                                  "General undervaluation/maximize shareholder value"),]
@@ -48,7 +48,6 @@ shark.sub.2015 = merge(shark.sub.2015, reduced_campaign, by="campaign_id")
 save(shark.sub.2015, file="shark.sub.2015")
 
 # Now, download the 13f file
-setwd("~/Networks")
 
 load("cusip_ok.short")
 
@@ -59,7 +58,7 @@ shark.sub.2015 <- shark.sub.2015[rowSums(is.na(shark.sub.2015))<ncol(shark.sub.2
 
 # We are only going to need filings that concern a list of given companies as a first step
 cusip.list <- unique(shark.sub.2015$cusip6)
-activist.list <- unique(clean.shark.partial$cik)
+activist.list <- unique(clean.shark.final$cik)
 
 same.cusips_13f <- subset( cusip_ok.short, cusip6 %in% cusip.list )
 # rm(list=setdiff(ls(), c("cusip_ok.dt","shark.sub.2015")) )
@@ -103,9 +102,11 @@ investor.number <- length( unique(sub$cik) )
 activist.set <- sub[sub$cik %in% passive.activist.list,]
 
 active.activist.set <- sub[sub$cik %in% active.activist.list,]
-
+# 
 if ( nrow(activist.set) >0 & nrow(active.activist.set) >0 ){
 
+# if ( nrow(active.activist.set) >0 ){
+  
   # Convert to mln every size value
 activist.set$value  = as.numeric( activist.set$value )/1000
 activist.set$total.activ.inv <- sum(  activist.set$value  )
@@ -153,9 +154,9 @@ iss_supports = subsh.camp$iss_supports
 glass_lewis_supports = subsh.camp$glass_lewis_supports
 
 output <- data.frame(campaign.id, cusip6, investor.number, 
-                     total.activist.number, won_brep_dummy, won_brep_percent, 
+                     total.activist.number, won_brep_dummy, won_brep_percent,
                      total.activist.size,activist.size.vweighted,
-                     success_of_stated_obj, active.activist.size, 
+                     success_of_stated_obj, active.activist.size,
                      activist.size.average,beginning.quarter,ending.quarter, success_objective_1, success_objective_2, success_objective_3,
                      iss_supports,glass_lewis_supports,
                      act_simple_closeness, act_simple_betweennes, act_simple_bonacich,
@@ -171,6 +172,7 @@ short.data <- rbind(short.data, output)
 }
 }
 }
+
 
 
 # Load compustat

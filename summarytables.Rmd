@@ -1,0 +1,1124 @@
+---
+title: "Activist paper preliminary output"
+author: "Anya Nakhmurina"
+fontsize: 12pt
+linestretch: 1.5
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+bibliography: networks.bib
+output: pdf_document
+header-includes: 
+  - \usepackage{booktabs}
+  - \usepackage{dcolumn}
+  - \usepackage{caption}
+  - \usepackage{fixltx2e}
+  - \usepackage[flushleft]{threeparttable}
+  - \usepackage{amsmath}
+  - \usepackage{graphics}
+  - \usepackage{float}
+  - \usepackage{longtable}
+  - \usepackage{array}
+  - \usepackage{rotating}
+  - \usepackage{float}
+---
+
+
+\section{The purpose of this document}
+
+The research question of this paper is to learn whether there are any network effects among the 'active' and 'passive' activist investors over the span of the activists' campaign. This document contains a summary of my progress with this project. Research approach section is basically copied from my original proposal to remind the reader about my research approach. 
+
+What is new: other sections contain a detailed description of the modelling of networks, as data collection description, summary statistics and some preliminary results. 
+
+What is left to be done: 
+\begin{enumerate}
+\item Data gathering. As described below, some of the data needs to be manually classified. There is hope to obtain a portion of this data from Nickolay Gantchev. But even with the data shared with me, data collection represents substantial chunk of work.
+\item Introduce networks. Incorporate network matrix into OLS regressions, and do an IV and GMM.
+\end{enumerate}
+
+
+\section{Research approach}
+
+\subsection{Models discussion} 
+
+I am going to start with the simplest case in order to provide intuition for my further steps. An intuitive first step for studying peer effects would be to assume that all activist investors are homogeneous and estimate the 'number effect', i.e. look at whether the number of activist shareholders invested in the company help predict the outcome of the campaign. In other words, the conceptual baseline regression specification would be:
+
+\begin{equation}
+ Y = \alpha + \beta x + \gamma N +controls+\epsilon
+\end{equation}
+
+where $Y$ is an outcome of the campaign, $x$ is persuasiveness of an activist and $N$ is a number of activist investors in the company. 
+Then I am going to proceed to a more complex case and relax the homogeneity assumption. Now the composition of co-investors is going to be used in the estimates of spillover effects:
+
+
+\begin{eqnarray}
+Y = \alpha + \beta x + \sum_{i}\gamma_ix_i +controls +\epsilon
+\end{eqnarray}
+
+
+or, in other words,
+
+\begin{equation}
+Y = \alpha + \beta x + \gamma \bar{x} +controls+\epsilon
+\end{equation}
+
+where $\bar{x}$ is the average persuasiveness of all other activists present in the company.
+
+Angrist(2014) suggests that in the case where neighborhoods are 'partitioned', even absent spillovers, $\gamma$ could be estimated to be positive. This will happen when OLS estimates of own effects differ from IV estimates using group dummies. This could happen because of measurement error or different local averages. 
+The other conceptual problems related to estimation of (1) and (2) are so-called 'correlated effects'. Even if the simultaneous investment in the same company is exogenous, the actions of two activists are going to be influenced by same 'taste' and information shocks. This effect would arise because of the existence of a connection between them. The problem exacerbates when simultaneous investment is endogenous, meaning that activists are going to have similar observable and unobservable characteristics. 
+
+I propose to study activist peer effects in a network because the network effect is interesting \textit{per se}, and also because of the reasons provided in the above paragraph. In order to incorporate network effects I am going to build on a simplest simultaneous game over networks.I discuss this model shortly below on order to sketch a proposed estimation procedure.
+
+Suppose that there are $N$ activists in the economy. Each activists' outcome function can be broadly described as follows:
+
+\begin{equation}
+Y_i=(\alpha_i+\xi_i)x_i+\gamma_iG_i'x+\phi x_iG_i'x +\epsilon_i
+\end{equation}
+
+where $G$ is a matrix that represents the network of interactions weighted by the number of connections and investors' position in the target, $x$ is a vector of persuasiveness, $\alpha_i$ is a fixed own effect, and $\epsilon_i$ and $\xi_i$ are random errors.
+
+If we assume that activists' utility function is linear in $Y$ and quadratic in $x_i$ (persuasiveness, in a way, is a cost that activist pays for success), that is:
+
+\begin{eqnarray}
+u_i=Y_i - \frac{\theta}{2}x_i^2
+\end{eqnarray}
+ 
+then the agent's best response is going to be
+
+\begin{equation}
+x_i=max\{\frac{\alpha_i}{\theta}+\frac{\phi}{\theta}G_i'x+\frac{\xi}{\theta} , 0  \}
+\end{equation}
+
+Thus, the best response links activists' choice to other activist choice, creating endogeneity problem discussed above. If we assume interior solution and substitute (6) into (4), we will get
+
+\begin{equation}
+Y_i=\theta x_i^2+\gamma G_i'x+\epsilon_i
+\end{equation} 
+
+By estimating equations (6) and (7) one can uncover the presence of peer effects and the extent of their significance in activists' setting. 
+
+
+\subsection{Empirical approach}
+
+In this subsection I am going to describe variables definition and empirical approach in more detail. I am going to measure the variables of interest as follows: 
+
+$x_i$ - the conceptual background behind this variable is the 'power' of activist to influence managerial decisions. As discussed above, I refer to this variable as 'persuasiveness'. I am going to use size, reputation (the age of activist), share of past successes to proxy for this variable. Curently the only  variable that I was able to obtain is the size of the activist.
+
+$Y_i$ is the outcome of activists actions. While the objective of most activists is to maximize targets' stock returns, cumulative abnormal return is a very noisy measure that is going affected by confounding events. That is why I am agnostic about using it in my analysis. The list of other measures that could be used to measure $Y_i$ are: the success of the campaign, i.e. whether activists' demands were met; board representation by activists; operational earnings improvement.
+
+$G(\delta)$ is the activist investor network where the connection is represented by investment in the same company (with weighting parameter $\delta$ corresponding to the number of links between activists, and a spring weights described below).
+
+$controls$  are appropriate company, activist's and campaign controls. Those will include, but not limited to operating earnings, size, market-to-book, leverage, industry indicators, board characteristics on the company side; assets under management, invested capital and category from the activists' side; and Sharkrepellent classification of activists' actions described in section 3. 
+
+I start my analysis by estimating equation (1) and (3) with OLS to obtain benchmark results. The obvious problem in these regressions is an omitted variable problem. Identifying peer effects requires a careful approach, because firm and activists characteristics that are not observed by the researcher but are known to the activists induce a correlation in outcome variable. This correlation can be
+mistaken for funds' strategic interactions. Thus, I am going to proceed with IV estimation of (1) and (3). 
+
+Once those baseline results are established, I plan to move on to estimating (4). To start with, I am going to estimate (7) with OLS to obtain a benchmark result. Then I would proceed to IV estimation. Note that there is a dual endogeneity problem in case of specification (7). In addition to possibility of correlation of $x_i$ and $\epsilon_i$, we now have a problem of correlation between $G_i'x$ and $\epsilon_i$. This makes the search for an optimal instrument much harder, as two exclusion restrictions will have to be satisfied. The instrument that can be used in my setting is exploiting the network structure and was developed in Bramouille, Djebarri and Fortin (2009). Imagine that activist 1 belongs to activists 2 network, and activist 2 belongs to the activists 3 network, but activist 1 is not in activist 3 network. Then the characteristics of activist 1 can be used as an instrument to study the effects that activist 1 imposes on the activist 2. 
+
+My final estimation exercise would be to estimate the equations (6) and (7) structurally via GMM. 
+
+
+\section{Network matrix definition}
+
+To start with, I am going to discuss several networks definitions. A network $G=G(N,E)$ is defined as a set of nodes $N$ and edges $E$. In the case of this paper the nodes represent activist funds, and the edges represent the links between pairs of nodes. The edges are essentially the firms that the activists hold shares in. 
+
+The simplest case of the network is a binary network. The binary network consists of the net of nodes that are either connected or not. A more complex case is a case of weighted network, in which the each edge contains an edge weight which measures the strength of the link. Both binary network and weighted network may have directed edges. This means that a link from node $i$ to node $j$ can differ from the a link from node $j$ to node $i$.
+
+In my analysis, I am going to use the following three definitions of the network matrix. 
+
+\begin{enumerate}
+	\item \textit{Simple Network}. The activists are connected if they co-invested at least in one company together.
+	\item \textit{Number of Connections Network}. The activists are connected if they co-invested at least in one company together. The edges are then weighted by the number of co-investments. This network is undirected. 
+	\item \textit{Spring Network}  The activists are connected if they co-invested at least in one company together. The spring network also recognizes that the links between funds are undirected.
+	
+	 Imagine that there are two funds that invested in one company. The first thing that needs to be taken account of is the size of the fund's investment. The fund 1 invested 100, while the fund 2 invested 1. Then the link of fund 2 to find one is bigger than the link of fund 1 to fund 2. The second important consideration is the fund size (assets under management). Let the size of fund 1 be 200, while the size of the fund 2 be 10, and let the both funds' investments be equal to 1. Then, again, the link of fund 2 to fund 1 is bigger then the link working in the opposite direction.
+	 
+	 The model of network that takes the above considerations into account is as follows. Let there be two activist funds: fund 1 of size $A_1$ and fund 2 of size $A_2$, and suppose there is only one company through which they are connected. Let the size of the company be $C$, and let $C_{i}$ be the amount of the company shares that fund $i$ holds.
+	 
+We can think about an change of fund's holding stock in the company by 1 share as an incremental change of the fund's influence on the company.
+Then the influence that the fund 1 can exert on the company could be represented as $S_{1C} \equiv \frac{C_1}{C}$. Similarly, the importance of the company holdings for the fund 2 can be represented as $S_{C2} \equiv \frac{C_2}{A_2}$. The Figure 1 illustrates this case. 
+	  
+\begin{figure}[hbp]
+\centering
+\includegraphics[width=10cm]{spring1}
+\caption{Edge formation with spring network. The case when two activists are connected through 1 firm.}
+\end{figure}
+Then the connection between fund 1 and fund 2 could be represented as a system of successive 'springs':
+ 	 
+$$\frac{1}{S_{12}} =\frac{1}{S_{1C}}+\frac{1}{S_{C2}} =\frac{C}{C_1}+\frac{A_2}{C_2} \text{,   so}  $$
+	 	  
+\begin{equation*}
+S_{12} = 
+\begin{cases}
+\frac{C_1C_2}{C_2C+A_2C_1}&\text{$C_i \ne 0$, $i$ =1,2}\\
+0 &\text{$C_i = 0$, $i$ =1,2.}
+\end{cases}
+\end{equation*}
+ 	  
+Similarly, 
+
+\begin{equation*}
+S_{21} = 
+\begin{cases}
+\frac{C_1C_2}{C_1C+A_1C_2}&\text{$C_i \ne 0$, $i$ =1,2}\\
+0 &\text{$C_i = 0$, $i$ =1,2.}
+\end{cases}
+\end{equation*}
+	  
+	 	  
+One can observe that this definition of the edge weight satisfies many desired properties. If at least one fund did not invest, then the connection between funds is zero. If we take two funds of a similar size, then the link between them is symmetric and only depend on the amount invested. If both funds invested a lot, the link is strong. If both funds invested a little, the link is weak. If fund 1 invested a lot, but fund 2 invested a little, the link from fund 1 to fund 2 is weak. 
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=7cm]{spring2}
+\caption{Edge formation with spring network. The case when two activists are connected through 2 firms.}
+\end{figure}
+
+
+Analogously, the system where there are more then one company that the funds co-invested, can be represented as a parallel system of springs. The Figure 2 illustrates the case of two companies.  
+
+In this case, the link between fund 1 and fund 2 is defined as 
+
+$$ S_{12}= S'_{12}+S'_{12}$$
+
+where $S'_{12}$ and $S'_{12}$ are defined as described above. 
+\end{enumerate}
+
+
+
+	
+
+
+
+
+\section{Data and summary statistics}
+\subsection{Form 13F}
+	
+I obtain information about funds positions from 13F data. Form 13F is filed annually by institutional investment managers with assets under management exceeding \$100mn. This form requires disclosure the managers' financial positions along with corresponding trade dates. Up to this date, I scraped the 13F data for 2014-2015 from the SEC EDGAR website. This was a preferable option for this time period because starting 2014 the funds are required to file form 13F as an XML table. This allowed me to perfectly identify the unique identificators (CIK codes) of the funds. 
+	
+Unfortunately, the funds had substantial discretion in filing the 13F forms prior to 2014, so obtaining consistent data no longer seems possible. This leaves me a second-best option of downloading the 13F forms from Thompson Reuters and Factset. The significant disadvantage of this data is that it only contains fund names, not the CIK codes. Thus, processing this dataset is going to require using approximate matching algorithms. 
+	
+\subsection{Form 13D}
+	
+Form 13D needs to be filed when an investor accumulates 5\% stake in the company and has intentions of changing the ways the company operates. \footnote{Passive investors are filing form 13G} If there were any letters to management/shareholders, those need to be attached to the form 13D. The investors also may choose to elaborate their intentions regarding the company. 
+	
+\subsection{Activists campaigns}
+	
+I am using SharkWatch database to obtain information about activist campaigns. This database is available to me through Factset. SharkWatch database contains information on activists' campaigns that reached a certain form of documentation (such as threatening proxy fights, publicly disclosed letter/presentation to management, letter to shareholders, proxy fight or hostile offer).  Specifically, SharkWatch lists activists which participated in the campaign, the means that both activists and company took to win the campaign, and briefly (in 2-3 sentences) describes the outcome of the campaign. 
+	
+SharkWatch lists all activists involved in a certain campaign in one database cell and does not contain any commonly used identifiers of activists funds. Therefore I manually separated the funds listed in a cell. Once the funds are separated, I use the 13F database to match the funds' name to its CIK code. For those funds which were not matched via exact match, I use an approximate match algorithms with Levenshtein distance metrics.  
+	
+There are 831 activists that are still not matched after the exact and approximate matches. Most of them are the names of individuals. For example, sometimes the SharkWatch uses the name of the person who signed 13D to form the activist variable. In some cases the campaign is run not by the individual, but by the fund that employs this individual. Those cases need to be manually analyzed and matched. I consider those cases as the toughest ones to match and left those until later.
+	
+\subsection{Campaign outcome variable}
+		
+In this paper I am interested in learning how the composition of investors influences the campaign outcome.
+I use several variables to determine the outcome of the campaign. 
+	
+I obtain the first outcome variable that I use following Brav et. al (2008) and Gantchev (2013). In particular, I classify campaign as successful when the main investment objective is achieved over the course of the campaign. To do this, I first identify the publicly disclosed objectives of the activists by reading the form 13D, letter to shareholders or letter to the board/management. Then read through the all company press releases and media announcements over the course of the campaign and search for any mentions that the objectives were achieved. 
+	
+Up until now, I have classified only the year of 2015 (around 500 campaigns) using the method described above. Because this way of collecting data is time consuming, I asked the authors of Brav et. al (2008) and Gantchev (2013) to share the data with me. I have preliminary agreement with Nickolay Gantchev that he will share the classified data spanning 2000-2007, but I haven't received anything yet. 
+	
+I use the outcome of the directors election as my second outcome variable. This variable is only going to be available when activists aim at board representation. I created a indicator variable which is equal to 1 when the activist group is able to place at least 1 nominee on the board. The second possible outcome variable is the percentage of the activist nominees that were elected to the company board. Unfortunately, I cannot use the latter variable in my regressions now, because the information on the board seats sought is very sparse. (I only have 21 observations of this variable now). 
+	
+The final set of outcome variables is operational variables. In particular, I use the sales growth and operational profitability growth over the span of the campaign. I define operational profitability as in Ball et. al (2016) (Operating Profitability = Revenue
+- Cost of goods sold - Reported sales, general, and administrative expenses).
+
+	
+\subsection{Control variables}	
+	
+I am using COMPUSTAT to obtain control variables.
+	
+\subsection{Final dataset}
+	
+After cleaning and merging campaign data with 13F data and COMPUSTAT, I am left with 104 observations over 2015. I run my analysis on this small subsample.
+	
+\pagebreak
+\section{Summary Statistics}
+
+```{r, message=F, warning=F, echo=FALSE,  fig.width=14, fig.height=6, }
+suppressWarnings(library("xtable"))
+
+library(dplyr)
+library(xtable)
+library(dplyr)
+library(plyr)
+library(ggplot2)
+library(lmtest)
+library(gridExtra)
+library(reshape)
+library(reshape2)
+library(gridExtra)
+library(Hmisc)
+library(sfsmisc)
+library(gdata)
+library(scales)
+library(xtable)
+library(tables)
+
+setwd("~/Networks")
+final.output <- ("C:/Users/anakhmur/Documents/Networks/markdown")
+# Now analyze the output
+
+classified <- read.csv("classified.2015.csv")
+classified$announce_date <- as.Date(classified$announce_date, "%m/%d/%Y")
+classified.2015 <- classified[(classified$announce_date< "2016-1-1"),]
+
+sum.table <- data.frame()
+
+gen.under = classified.2015[which(classified.2015$activist_objective_1 == "General undervaluation/maximize shareholder value"),]
+general.undervaluation <- cbind("General undervaluation/maximize shareholder value" , nrow(gen.under), percent( nrow(gen.under)/nrow(classified.2015) ), "NA" ) 
+sum.table = rbind (sum.table, general.undervaluation)
+names(sum.table) = c("objective", "total.number", "percentage", "success.rate")
+
+obj.list = unique(classified.2015$activist_objective_1) 
+
+# include everything but General undervaluation in the list
+
+ol = c( "Excess cash, under-leverage, dividends/repurchases", "Equity issuance, restructure debt, recapitalization",
+       "Operational efficiency", "Lack of focus, business restructuring and spinning off", "M&A: as target (against the deal/for better terms)",
+       "M&A: as acquirer (against the deal/for better terms)", "Pursue growth strategies", "Sell company or main assets to a third party", 
+       "Take control/buyout company and/or take it private", "Rescind takeover defenses", "Oust CEO, chairman", "Board independence and fair representation",
+       "More information disclosure/potential fraud", "Excess executive compensation/pay for performance","Institute enviromental protection policy", "Public Short Position/Bear Raid")
+
+sum.table2 = data.frame()
+
+for( objective in ol ){
+  
+  # print(objective)
+
+ex.cash = classified.2015[which(classified.2015$activist_objective_1 == objective | classified.2015$activist_objective_2 == objective | classified.2015$activist_objective_3 == objective),]
+
+suc = ex.cash[which(ex.cash$success_objective_1 %in% c("Success", "Partial") & ex.cash$activist_objective_1 == objective | ex.cash$success_objective_2 %in% c("Success", "Partial") & ex.cash$activist_objective_2 == objective  | ex.cash$success_objective_3 %in% c("Success", "Partial") & ex.cash$activist_objective_3 == objective ),]
+
+total.number = nrow(ex.cash)
+success.rate <- percent(nrow(suc)/nrow(ex.cash))
+percentage <- percent( nrow(ex.cash)/nrow(classified.2015) )
+
+output <- cbind(objective , total.number, percentage , success.rate )
+
+sum.table2 <- rbind(sum.table2, output)
+}
+
+non.gen.under = classified.2015[which(classified.2015$activist_objective_1 != "General undervaluation/maximize shareholder value"),]
+total.number_all <- nrow(non.gen.under)
+percentage_all <- percent(total.number_all/nrow(classified.2015))
+suc = non.gen.under[which(non.gen.under$success_objective_1 %in% c("Success", "Partial") | non.gen.under$success_objective_2 %in% c("Success", "Partial")  | non.gen.under$success_objective_3 %in% c("Success", "Partial")  ),]
+success_all = percent( nrow(suc)/nrow(non.gen.under))
+sum = as.data.frame ( cbind( "Sum of categories not falling into general undervaluation", total.number_all, percentage_all, success_all) )
+names(sum) = names(sum.table2)
+
+sum.table2 = rbind(sum.table2, sum)
+sum.table = rbind(sum.table, sum.table2)
+
+sum.table<-as.data.frame(sum.table)
+sum.table_tex <- xtable(sum.table,include.rownames=TRUE, digits=1)
+
+print(sum.table_tex,
+      only.contents=TRUE,
+      include.rownames=FALSE,
+      include.colnames = FALSE,
+      type="latex",
+
+      floating = FALSE,
+      hline.after = NULL, comment = FALSE,
+      file="C:/Users/anakhmur/Documents/Networks/markdown/sum_table_tex.tex")
+
+#################
+# Create summary table for the merged subsample
+
+load("short.data.compust")
+
+classified_merged = merge(classified.2015, short.data.compust, by.x="campaign_id", by.y="campaign.id")
+
+sum.table <- data.frame()
+
+gen.under = classified_merged[which(classified_merged$activist_objective_1 == "General undervaluation/maximize shareholder value"),]
+general.undervaluation <- cbind("General undervaluation/maximize shareholder value" , nrow(gen.under), percent( nrow(gen.under)/nrow(classified_merged) ), "NA" ) 
+sum.table = rbind (sum.table, general.undervaluation)
+names(sum.table) = c("objective", "total.number", "percentage", "success.rate")
+
+obj.list = unique(classified_merged$activist_objective_1) 
+
+# include everything but General undervaluation in the list
+
+ol = c( "Excess cash, under-leverage, dividends/repurchases", "Equity issuance, restructure debt, recapitalization",
+       "Operational efficiency", "Lack of focus, business restructuring and spinning off", "M&A: as target (against the deal/for better terms)",
+       "M&A: as acquirer (against the deal/for better terms)", "Pursue growth strategies", "Sell company or main assets to a third party", 
+       "Take control/buyout company and/or take it private", "Rescind takeover defenses", "Oust CEO, chairman", "Board independence and fair representation",
+       "More information disclosure/potential fraud", "Excess executive compensation/pay for performance","Institute enviromental protection policy", "Public Short Position/Bear Raid")
+
+sum.table2 = data.frame()
+
+for( objective in ol ){
+  
+  # print(objective)
+
+ex.cash = classified_merged[which(classified_merged$activist_objective_1 == objective | classified_merged$activist_objective_2 == objective | classified_merged$activist_objective_3 == objective),]
+
+suc = ex.cash[which(ex.cash$success_objective_1.x %in% c("Success", "Partial") & ex.cash$activist_objective_1== objective | ex.cash$success_objective_2.x %in% c("Success", "Partial") & ex.cash$activist_objective_2 == objective  | ex.cash$success_objective_3.x %in% c("Success", "Partial") & ex.cash$activist_objective_3 == objective ),]
+
+total.number = nrow(ex.cash)
+success.rate <- percent(nrow(suc)/nrow(ex.cash))
+percentage <- percent( nrow(ex.cash)/nrow(classified_merged) )
+
+output <- cbind(objective , total.number, percentage , success.rate )
+
+sum.table2 <- rbind(sum.table2, output)
+}
+
+non.gen.under = classified_merged[which(classified_merged$activist_objective_1 != "General undervaluation/maximize shareholder value"),]
+total.number_all <- nrow(non.gen.under)
+percentage_all <- percent(total.number_all/nrow(classified_merged))
+suc = non.gen.under[which(non.gen.under$success_objective_1 %in% c("Success", "Partial") | non.gen.under$success_objective_2 %in% c("Success", "Partial")  | non.gen.under$success_objective_3 %in% c("Success", "Partial")  ),]
+success_all = percent( nrow(suc)/nrow(non.gen.under))
+sum = as.data.frame ( cbind( "Sum of categories not falling into general undervaluation", total.number_all, percentage_all, success_all) )
+names(sum) = names(sum.table2)
+
+sum.table2 = rbind(sum.table2, sum)
+sum.table = rbind(sum.table, sum.table2)
+
+sum.table<-as.data.frame(sum.table)
+sum.table_tex_short <- xtable(sum.table,include.rownames=TRUE, digits=1)
+
+print(sum.table_tex_short,
+      only.contents=TRUE,
+      include.rownames=FALSE,
+      include.colnames = FALSE,
+      type="latex",
+
+      floating = FALSE,
+      hline.after = NULL, comment = FALSE,
+      file="C:/Users/anakhmur/Documents/Networks/markdown/sum.table_tex_short.tex")
+
+###############
+# Campaigns by type 
+
+load("shark.sub.2015")
+
+dem = shark.sub.2015[which(shark.sub.2015$exit_stage == "demand_negot"),]
+demand_negot_count = nrow(dem)
+dem_negot_percent = percent( demand_negot_count/nrow(shark.sub.2015))
+dem_suc = dem[which(dem$success_objective_1 %in% c("Success", "Partial") | dem$success_objective_2 %in% c("Success", "Partial")  | dem$success_objective_3 %in% c("Success", "Partial") ),]
+dem_success_number = nrow(dem_suc)
+dem_success_percent = percent(dem_success_number/nrow(dem))
+demand_negotiations = cbind("Demand negotiations", demand_negot_count, dem_negot_percent,dem_success_number, dem_success_percent)
+
+brep = shark.sub.2015[which(shark.sub.2015$exit_stage == "board_repres"),]
+board_rep_count = nrow(brep)
+board_rep_percent = percent( board_rep_count/nrow(shark.sub.2015))
+brep_suc = brep[which(brep$success_objective_1 %in% c("Success", "Partial") | brep$success_objective_2 %in% c("Success", "Partial")  | brep$success_objective_3 %in% c("Success", "Partial") ),]
+brep_success_number = nrow(brep_suc)
+brep_success_percent = percent(brep_success_number/nrow(brep))
+board_representation = cbind("Board representation", board_rep_count, board_rep_percent,brep_success_number, brep_success_percent)
+
+pfight = shark.sub.2015[which(shark.sub.2015$exit_stage == "proxy_fight"),]
+pfight_count = nrow(pfight)
+pfight_percent = percent( pfight_count/nrow(shark.sub.2015))
+pfight_suc = pfight[which(pfight$success_objective_1 %in% c("Success", "Partial") | pfight$success_objective_2 %in% c("Success", "Partial")  | pfight$success_objective_3 %in% c("Success", "Partial") ),]
+pfight_success_number = nrow(pfight_suc)
+pfight_success_percent = percent(pfight_success_number/nrow(pfight))
+proxy_fight = cbind("Proxy fight", pfight_count, pfight_percent,pfight_success_number, pfight_success_percent)
+
+thpfight = shark.sub.2015[which(shark.sub.2015$exit_stage == "treaten_fight"),]
+thpfight_count = nrow(thpfight)
+thpfight_percent = percent( thpfight_count/nrow(shark.sub.2015))
+thpfight_suc = thpfight[which(thpfight$success_objective_1 %in% c("Success", "Partial") | thpfight$success_objective_2 %in% c("Success", "Partial")  | thpfight$success_objective_3 %in% c("Success", "Partial") ),]
+thpfight_success_number = nrow(thpfight_suc)
+thpfight_success_percent = percent(thpfight_success_number/nrow(thpfight))
+treaten_proxy_fight = cbind("Threaten proxy fight", thpfight_count, thpfight_percent,thpfight_success_number, thpfight_success_percent)
+
+buyc = shark.sub.2015[which(shark.sub.2015$exit_stage == "buy_company"),]
+buyc_count = nrow(buyc)
+buyc_percent = percent( buyc_count/nrow(shark.sub.2015))
+buyc_suc = buyc[which(buyc$success_objective_1 %in% c("Success", "Partial") | buyc$success_objective_2 %in% c("Success", "Partial")  | buyc$success_objective_3 %in% c("Success", "Partial") ),]
+buyc_success_number = nrow(buyc_suc)
+buyc_success_percent = percent(buyc_success_number/nrow(buyc))
+buy_company = cbind("Buy company", buyc_count, buyc_percent,buyc_success_number, buyc_success_percent)
+
+success_stage_all = rbind(demand_negotiations,board_representation,treaten_proxy_fight, proxy_fight, buy_company)
+success_stage_all<-as.data.frame(success_stage_all)
+success_stage_all_tex <- xtable(success_stage_all,include.rownames=TRUE, digits=2)
+
+print(success_stage_all_tex,
+      only.contents=TRUE,
+      include.rownames=FALSE,
+      include.colnames = FALSE,
+      type="latex",
+
+      floating = FALSE,
+      hline.after = NULL, comment = FALSE,
+      file="C:/Users/anakhmur/Documents/Networks/markdown/success_stage_all_tex.tex")
+
+####################
+# Success rates by  merged data
+load("short.data.compust")
+
+
+dem = short.data.compust[which(short.data.compust$exit_stage == "demand_negot"),]
+demand_negot_count = nrow(dem)
+dem_negot_percent = percent( demand_negot_count/nrow(short.data.compust))
+dem_suc = dem[which(dem$success_objective_1 %in% c("Success", "Partial") | dem$success_objective_2 %in% c("Success", "Partial")  | dem$success_objective_3 %in% c("Success", "Partial") ),]
+dem_success_number = nrow(dem_suc)
+dem_success_percent = percent(dem_success_number/nrow(dem))
+demand_negotiations = cbind("Demand negotiations", demand_negot_count, dem_negot_percent,dem_success_number, dem_success_percent)
+
+brep = short.data.compust[which(short.data.compust$exit_stage == "board_repres"),]
+board_rep_count = nrow(brep)
+board_rep_percent = percent( board_rep_count/nrow(short.data.compust))
+brep_suc = brep[which(brep$success_objective_1 %in% c("Success", "Partial") | brep$success_objective_2 %in% c("Success", "Partial")  | brep$success_objective_3 %in% c("Success", "Partial") ),]
+brep_success_number = nrow(brep_suc)
+brep_success_percent = percent(brep_success_number/nrow(brep))
+board_representation = cbind("Board representation", board_rep_count, board_rep_percent,brep_success_number, brep_success_percent)
+
+pfight = short.data.compust[which(short.data.compust$exit_stage == "proxy_fight"),]
+pfight_count = nrow(pfight)
+pfight_percent = percent( pfight_count/nrow(short.data.compust))
+pfight_suc = pfight[which(pfight$success_objective_1 %in% c("Success", "Partial") | pfight$success_objective_2 %in% c("Success", "Partial")  | pfight$success_objective_3 %in% c("Success", "Partial") ),]
+pfight_success_number = nrow(pfight_suc)
+pfight_success_percent = percent(pfight_success_number/nrow(pfight))
+proxy_fight = cbind("Proxy fight", pfight_count, pfight_percent,pfight_success_number, pfight_success_percent)
+
+thpfight = short.data.compust[which(short.data.compust$exit_stage == "treaten_fight"),]
+thpfight_count = nrow(thpfight)
+thpfight_percent = percent( thpfight_count/nrow(short.data.compust))
+thpfight_suc = thpfight[which(thpfight$success_objective_1 %in% c("Success", "Partial") | thpfight$success_objective_2 %in% c("Success", "Partial")  | thpfight$success_objective_3 %in% c("Success", "Partial") ),]
+thpfight_success_number = nrow(thpfight_suc)
+thpfight_success_percent = percent(thpfight_success_number/nrow(thpfight))
+treaten_proxy_fight = cbind("Threaten proxy fight", thpfight_count, thpfight_percent,thpfight_success_number, thpfight_success_percent)
+
+buyc = short.data.compust[which(short.data.compust$exit_stage == "buy_company"),]
+buyc_count = nrow(buyc)
+buyc_percent = percent( buyc_count/nrow(short.data.compust))
+buyc_suc = buyc[which(buyc$success_objective_1 %in% c("Success", "Partial") | buyc$success_objective_2 %in% c("Success", "Partial")  | buyc$success_objective_3 %in% c("Success", "Partial") ),]
+buyc_success_number = nrow(buyc_suc)
+buyc_success_percent = percent(buyc_success_number/nrow(buyc))
+buy_company = cbind("Buy company", buyc_count, buyc_percent,buyc_success_number, buyc_success_percent)
+
+success_stage_merged = rbind(demand_negotiations,board_representation,treaten_proxy_fight, proxy_fight, buy_company)
+success_stage_merged = as.data.frame(success_stage_merged )
+success_stage_merged_tex <- xtable(success_stage_merged ,include.rownames=TRUE, digits=2)
+
+print(success_stage_merged_tex,
+      only.contents=TRUE,
+      include.rownames=FALSE,
+      include.colnames = FALSE,
+      type="latex",
+
+      floating = FALSE,
+      hline.after = NULL, comment = FALSE,
+      file="C:/Users/anakhmur/Documents/Networks/markdown/success_stage_merged_tex.tex")
+
+
+#############################################################
+#Create summary table for final subsample
+
+load("short.data.compust")
+
+short.summary <- data.frame()
+
+won_brep_percent = short.data.compust$won_brep_percent
+won_brep_dummy = short.data.compust$won_brep_dummy
+success_of_stated_obj = short.data.compust$success_of_stated_obj
+sales_growth = short.data.compust$sales_growth
+oper_profit_growth = short.data.compust$oper_profit_growth
+
+campaign_outcomes <- list(won_brep_percent,won_brep_dummy,
+                       success_of_stated_obj, sales_growth, oper_profit_growth)  
+names_campaign_outcomes <- c("won_brep_percent","won_brep_dummy",
+                       "success_of_stated_obj", "sales_growth", "oper_profit_growth")  
+
+for (i in 1:length(campaign_outcomes) ){
+  variable = (campaign_outcomes)[[i]]
+  name = names_campaign_outcomes[i]
+out <- cbind( min(variable, na.rm = TRUE), quantile(variable, 0.25, na.rm = TRUE), 
+                 mean(variable, na.rm = TRUE),median(variable, na.rm = TRUE), quantile(variable, 0.75, na.rm = TRUE),max(variable, na.rm = TRUE), sd(variable, na.rm = TRUE) )
+out <- round(out, 2)
+out = cbind("campaign outcome",name,out)
+short.summary = rbind(short.summary, out)}
+
+active.activist.size=short.data.compust$active.activist.size
+
+name = "log(active.activist.size)"
+out_persuasiveness <- cbind ( min(log(short.data.compust$active.activist.size), na.rm = TRUE), quantile(log(short.data.compust$active.activist.size), 0.25, na.rm = TRUE), 
+                 mean(log(short.data.compust$active.activist.size), na.rm = TRUE),median(log(short.data.compust$active.activist.size), na.rm = TRUE), quantile(log(short.data.compust$active.activist.size), 0.75, na.rm = TRUE),max(log(short.data.compust$active.activist.size), na.rm = TRUE), sd(log(short.data.compust$active.activist.size), na.rm = TRUE) ) 
+out_persuasiveness = round(out_persuasiveness, 2)
+out_persuasiveness = cbind("activists' persuasiveness", name,out_persuasiveness)
+names(out_persuasiveness) = names(short.summary)
+
+short.summary = rbind(short.summary, out_persuasiveness)
+
+netw <- short.data.compust[c("investor.number", "total.activist.number")]
+names_netw <- names(netw)
+
+for (i in 1:length(netw) ){
+  variable = (netw)[[i]]
+  name = names_netw[i]
+out <- cbind( min(variable, na.rm = TRUE), quantile(variable, 0.25, na.rm = TRUE), 
+                 mean(variable, na.rm = TRUE),median(variable, na.rm = TRUE), quantile(variable, 0.75, na.rm = TRUE),max(variable, na.rm = TRUE), sd(variable, na.rm = TRUE) )
+out = round(out, 2)
+out = cbind("network variable", name, out)
+short.summary = rbind(short.summary, out)}
+
+netw_log <- short.data.compust[c("activist.size.vweighted", "activist.size.average")]
+names_netw_log <- c("log(activist.size.vweighted)", "log(activist.size.average)")
+
+for (i in 1:length(netw_log) ){
+  variable = (netw_log)[[i]]
+  name = names_netw_log[i]
+out <- cbind( min(log(variable), na.rm = TRUE), quantile(log(variable), 0.25, na.rm = TRUE), 
+                 mean(log(variable), na.rm = TRUE),median(log(variable), na.rm = TRUE), quantile(log(variable), 0.75, na.rm = TRUE),max(log(variable), na.rm = TRUE), sd(log(variable), na.rm = TRUE) )
+out = round(out, 2)
+out = cbind("network variable", name, out)
+short.summary = rbind(short.summary, out)}
+
+
+load("networks_summary_2015")
+networks_summary_2015 = cbind("network variable", networks_summary_2015 )
+names(networks_summary_2015) = names(short.summary) 
+short.summary = rbind(short.summary, networks_summary_2015)
+
+controls = short.data.compust[c("size")]
+
+name_controls = c("log(size)")
+
+for (i in 1:length(controls) ){
+  variable = (controls)[[i]]
+  name = name_controls[i]
+out <- cbind( min(log(variable), na.rm = TRUE), quantile(log(variable), 0.25, na.rm = TRUE), 
+                 mean(log(variable), na.rm = TRUE),median(log(variable), na.rm = TRUE), quantile(log(variable), 0.75, na.rm = TRUE),max(log(variable), na.rm = TRUE), sd(log(variable), na.rm = TRUE))
+out =round(out, 2)
+out = cbind( "control variable", name, out)
+short.summary = rbind(short.summary, out)}
+
+
+controls = short.data.compust[c("age","leverage","mtb","oper_profit","roa","tobins_q","asset_turnover","rd_to_assets","revtq","saleq" )]
+
+name_controls = names(controls)
+
+for (i in 1:length(controls) ){
+  variable = (controls)[[i]]
+  name = name_controls[i]
+out <- cbind( min(variable, na.rm = TRUE), quantile(variable, 0.25, na.rm = TRUE), 
+                 mean(variable, na.rm = TRUE),median(variable, na.rm = TRUE), quantile(variable, 0.75, na.rm = TRUE),max(variable, na.rm = TRUE), sd(variable, na.rm = TRUE))
+out =round(out, 2)
+out = cbind( "control variable", name, out)
+short.summary = rbind(short.summary, out)}
+
+names(short.summary) = c("Variable type", "Variable", "Mean", "Median", "Sd")
+row.names(short.summary) <- NULL
+short.summary <- as.data.frame( short.summary)
+names(short.summary) <- c("Variable type", "Variable", "min","25%","Mean", "Median", "75%", "max", "Sd")
+
+
+short.summary<-as.data.frame(short.summary)
+short_summary_tex <- xtable(short.summary,include.rownames=TRUE, digits=2)
+
+print(short_summary_tex,
+      only.contents=TRUE,
+      include.rownames=FALSE,
+      include.colnames = FALSE,
+      type="latex",
+
+      floating = FALSE,
+      hline.after = NULL, comment = FALSE,
+      file="C:/Users/anakhmur/Documents/Networks/markdown/short_summary_tex.tex")
+
+
+#############
+# Do a correlation table
+
+cortable= data.frame( cbind(won_brep_percent,won_brep_dummy,success_of_stated_obj,sales_growth,oper_profit_growth,log(active.activist.size)))
+names(cortable)=c("won_brep_percent","won_brep_dummy","success_of_stated_obj","sales_growth","oper_profit_growth","log(active.activist.size)")
+
+cortable2 <- short.data.compust[c("investor.number", "total.activist.number", "activist.size.vweighted",  "activist.size.average","age","leverage","size","mtb","oper_profit","roa","tobins_q","asset_turnover","rd_to_assets","revtq","saleq" )]
+
+cortable2$'log(activist.size.vweighted)' = log(cortable2$activist.size.vweighted)
+cortable2$'log(activist.size.average)' = log(cortable2$activist.size.average)
+cortable2$'log(size)' = log(cortable2$size)
+
+cortable2 = cortable2[c("investor.number", "total.activist.number", "log(activist.size.vweighted)",  "log(activist.size.average)","age","leverage","log(size)","mtb","oper_profit","roa","tobins_q","asset_turnover","rd_to_assets","revtq","saleq" )]
+
+cortable =cbind(cortable, cortable2)
+
+upper=round( cor(cortable, use="pairwise.complete.obs"), 2)
+upper[upper.tri(upper)]<-""
+
+upper<-as.data.frame(upper)
+names(upper) <- c(1:nrow(upper))
+rownames(upper) = paste0(1:nrow(upper)," ", rownames(upper))
+upper_tex <- xtable(upper,include.rownames=TRUE, digits=2)
+
+print(upper_tex,
+      only.contents=TRUE,
+      include.rownames=TRUE,
+      include.colnames = TRUE,
+      type="latex",
+
+      floating = FALSE,
+      hline.after = NULL, comment = FALSE,
+      file="C:/Users/anakhmur/Documents/Networks/markdown/upper_tex.tex")
+```
+
+\footnotesize
+\singlespacing
+
+\begin{center}
+  \begin{longtable}{p{9cm} p{2cm} p{2cm}p{2cm} }
+		\caption{ \footnotesize \textbf{Summary of events by hedge fund stated goals - the whole 2015.} The sample consists of 467 activist campaigns in 2015, of which 352 contain demands.} \\
+		 \hline 
+				 \multicolumn{1}{l}{Activist' Objective} & \multicolumn{1}{l}{Num. of events} & \multicolumn{1}{l}{\% of Sample}  & \multicolumn{1}{l}{\% of Success} \\
+		\hline \hline 
+	\input{"C:/Users/anakhmur/Documents/Networks/markdown/sum_table_tex.tex"}
+	\hline \hline
+   \end{longtable}
+\end{center}
+
+
+\begin{center}
+  \begin{longtable}{p{9cm} p{2cm} p{2cm}p{2cm} }
+		\caption{\footnotesize  \textbf{Summary of events by hedge fund stated goals - the merged subsample of 2015.} The sample consists of 104 activist campaigns in 2015, of which 104 contain demands. The campaigns that fall into general undervaluation category are not considered here.} \\
+		 \hline 
+				 \multicolumn{1}{l}{Activist' Objective} & \multicolumn{1}{l}{Num. of events} & \multicolumn{1}{l}{\% of Sample}  & \multicolumn{1}{l}{\% of Success} \\
+		\hline \hline 
+	\input{"C:/Users/anakhmur/Documents/Networks/markdown/sum.table_tex_short.tex"}
+	\hline \hline
+   \end{longtable}
+\end{center}
+
+\begin{center}
+  \begin{longtable}{p{5cm} p{2cm} p{2cm}p{2cm}p{2cm} }
+		\caption{\footnotesize \textbf{Sussess rate by stage - the whole 2015.} This table provides the breakdown of stages at which the campaign is terminated. The table is based on the sample of all campaigns that took place in 2015. The data on campaign avalability comes from SharkWatch database. Campaigns were manually classified. } \\
+		 \hline \\[0.2ex]
+\multicolumn{1}{l}{Exit after} & \multicolumn{1}{l}{Num. of campaigns} & \multicolumn{1}{l}{\% of Sample} & \multicolumn{1}{l}{Number of Successes} & \multicolumn{1}{l}{\% of Successes} \\
+		\hline \hline 
+	\input{"C:/Users/anakhmur/Documents/Networks/markdown/success_stage_all_tex.tex"}
+	\hline \hline
+   \end{longtable}
+\end{center}
+
+\begin{center}
+  \begin{longtable}{p{5cm} p{2cm} p{2cm}p{2cm}p{2cm} }
+		\caption{\footnotesize \textbf{Sussess rate by stage - the merged subsample.}  This table provides the breakdown of stages at which the campaign is terminated. The table is based on the observations that are left after the campaigns data is merged with 13F data. The data on campaign avalability comes from SharkWatch database. Campaigns were manually classified. } \\
+		 \hline \\[0.2ex]
+\multicolumn{1}{l}{Exit after} & \multicolumn{1}{l}{Num. of campaigns} & \multicolumn{1}{l}{\% of Sample} & \multicolumn{1}{l}{Number of Successes} & \multicolumn{1}{l}{\% of Successes} \\
+		\hline \hline 
+	\input{"C:/Users/anakhmur/Documents/Networks/markdown/success_stage_merged_tex.tex"}
+	\hline \hline
+   \end{longtable}
+\end{center}
+
+\pagebreak
+\begin{center}
+  \begin{longtable}{p{2.8cm} p{3.7cm} p{1.1cm}p{1cm}p{1cm}p{1cm}p{1cm}p{1cm}p{1cm} }
+		\caption{\footnotesize  \textbf{Descriptive statistics.} This table provides summary statistics on the variables used in preliminary analysis. The variables are grouped by type. \textit{won\_brep\_percent} is the percentage of board seats won out of the number of activists' nominees. \textit{won\_brep\_dummy} is an indicator variable equal to 1 when at least 1 activist nominee was elected to the board.\textit{success\_of\_stated\_obj} is an indicator of fulfillment of activists' demands. \textit{sales\_growth} is the growth of sales over the span of the campaign. \textit{oper\_profit\_growth} is an operational profitability growth over the span of the campaign. Operational profitability is defined as in  Ball et. al (2016). \textit{active.activist.size} correponds to the total assets of an activist group, computed from 13F filings. \textit{investor.number} is a total number of institutional investors that hold shares of a company. \textit{total.activist.number} is the number of passive activist investors that hold shares of the company. Activist investor is defined as any investor that appeared in SharkWatch database at least once. \textit{activist.size.vweghted} is the sum of all the company's activists' assets weighted by the share of investments in the company. \textit{activist.size.average} is an average of total assets of company's activists. \textit{spring measure} corresponds to the edges of Spring Network, which is described above. \textit{number of connections} corresponds to Number of Connections Network, where the weight of the edge is number of connections between two activists. \textit{size} is the market value of the company. \textit{age} is the age of the company. \textit{leverage} is the leverage of the company. \textit{mtb} is the market-to-book ratio of the company. \textit{oper\_profit} is an operating profitability of the company. \textit{roa} is return on company's assets. \textit{tobins\_q} is the company's Tobin's Q. \textit{asset\_turnover} is the company's asset turnover. \textit{rd\_to\_assets} is a share of R\&D expenditures to the company's assets. \textit{revtq} is the  quartely revenue, and \textit{saleq} are the company's sales. } \\
+		\hline \hline 
+		 \multicolumn{1}{l}{Variable type} & \multicolumn{1}{l}{Variable} & \multicolumn{1}{l}{min}  & \multicolumn{1}{l}{p25} & \multicolumn{1}{l}{p50} & \multicolumn{1}{l}{median}& \multicolumn{1}{l}{p75} & \multicolumn{1}{l}{max} & \multicolumn{1}{l}{sd}\\ \hline \\[0.2ex]
+	\input{"C:/Users/anakhmur/Documents/Networks/markdown/short_summary_tex.tex"}
+	\hline \hline
+   \end{longtable}
+\end{center}
+
+\fontsize{10}{10}\selectfont
+\begin{center}
+\begin{sidewaystable}[p]\scriptsize
+		\caption{\footnotesize \textbf{Correlation table.} \textit{won\_brep\_percent} is the percentage of board seats won out of the number of activists' nominees. \textit{won\_brep\_dummy} is an indicator variable equal to 1 when at least 1 activist nominee was elected to the board.\textit{success\_of\_stated\_obj} is an indicator of fulfillment of activists' demands. \textit{sales\_growth} is the growth of sales over the span of the campaign. \textit{oper\_profit\_growth} is an operational profitability growth over the span of the campaign. Operational profitability is defined as in  Ball et. al (2016). \textit{active.activist.size} correponds to the total assets of an activist group, computed from 13F filings. \textit{investor.number} is a total number of institutional investors that hold shares of a company. \textit{total.activist.number} is the number of passive activist investors that hold shares of the company. Activist investor is defined as any investor that appeared in SharkWatch database at least once. \textit{activist.size.vweghted} is the sum of all the company's activists' assets weighted by the share of investments in the company. \textit{activist.size.average} is an average of total assets of company's activists. \textit{spring measure} corresponds to the edges of Spring Network, which is described above. \textit{number of connections} corresponds to Number of Connections Network, where the weight of the edge is number of connections between two activists. \textit{size} is the market value of the company. \textit{age} is the age of the company. \textit{leverage} is the leverage of the company. \textit{mtb} is the market-to-book ratio of the company. \textit{oper\_profit} is an operating profitability of the company. \textit{roa} is return on company's assets. \textit{tobins\_q} is the company's Tobin's Q. \textit{asset\_turnover} is the company's asset turnover. \textit{rd\_to\_assets} is a share of R\&D expenditures to the company's assets. \textit{revtq} is the  quartely revenue, and \textit{saleq} are the company's sales}\centering \tiny
+\begin{tabular}{p{3.4cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}}
+\hline\hline
+	\input{"C:/Users/anakhmur/Documents/Networks/markdown/upper_tex.tex"}
+	\hline\hline
+\end{tabular}
+\end{sidewaystable}
+\end{center}
+
+\pagebreak
+ \section{Preliminary results}
+ 
+ This section contains the tables with output of some preliminary OLS regressions. 
+
+```{r star, results = 'asis', warning=FALSE, message=FALSE,echo=FALSE}
+# Regressions are done here!
+
+library(stargazer, quietly = TRUE)
+library(sandwich, quietly = TRUE)
+setwd("~/Networks")
+
+load("short.data.compust")
+
+logit_1_binar_snum <- glm(won_brep_dummy ~total.activist.number, data = short.data.compust, family = "binomial")
+robust_se_logit_1_binar_snum   <- sqrt(diag( vcovHC(logit_1_binar_snum)))
+
+logit_1_binar_size <- glm(won_brep_dummy ~log(active.activist.size), data = short.data.compust, family = "binomial")
+robust_se_logit_1_binar_size   <- sqrt(diag( vcovHC(logit_1_binar_size)))
+
+logit_1_binar <- glm(won_brep_dummy ~ log(active.activist.size)+total.activist.number, data = short.data.compust, family = "binomial")
+robust_se_1_binar    <- sqrt(diag( vcovHC(logit_1_binar)))
+
+logit_1_binar_investor_only <- glm(won_brep_dummy ~ investor.number, data = short.data.compust, family = "binomial")
+robust_se_logit_1_binar_investor_only    <- sqrt(diag(vcovHC(logit_1_binar_investor_only) ))
+
+logit_1_binar_investor <- glm(won_brep_dummy ~ log(active.activist.size)+investor.number, data = short.data.compust, family = "binomial")
+robust_se_1_binar_investor    <- sqrt(diag(vcovHC(logit_1_binar_investor) ))
+
+logit_1_classified_snum <- glm(success_of_stated_obj ~total.activist.number, data = short.data.compust, family = "binomial")
+robust_se_logit_1_classified_snum   <- sqrt(diag( vcovHC(logit_1_classified_snum)))
+
+logit_1_classified_size <- glm(success_of_stated_obj ~log(active.activist.size), data = short.data.compust, family = "binomial")
+robust_se_logit_1_classified_size   <- sqrt(diag( vcovHC(logit_1_classified_size)))
+
+logit_1_classified <- glm(success_of_stated_obj ~ log(active.activist.size)+(total.activist.number), data = short.data.compust, family = "binomial")
+robust_se_1_classified   <- sqrt(diag( vcovHC(logit_1_classified) ))
+
+logit_1_classified_investor_only <- glm(success_of_stated_obj ~ investor.number, data = short.data.compust, family = "binomial")
+robust_se_logit_1_classified_investor_only    <- sqrt(diag(vcovHC(logit_1_classified_investor_only) ))
+
+logit_1_classified_investor <- glm(success_of_stated_obj ~log(active.activist.size)+(investor.number), data = short.data.compust, family = "binomial")
+robust_se_1_classified_investor   <- sqrt(diag( vcovHC(logit_1_classified_investor) ))
+
+
+star=capture.output( stargazer(logit_1_binar_snum, logit_1_binar_size, logit_1_binar,
+          logit_1_binar_investor_only, logit_1_binar_investor, 
+          logit_1_classified_snum,logit_1_classified_size,logit_1_classified,
+          logit_1_classified_investor_only, logit_1_classified_investor,
+                        type = "latex",  title = "Logit regressions with robust standard errors ", header = FALSE, font.size = "footnotesize",                               float.env="sidewaystable",
+                        se=list(robust_se_logit_1_binar_snum, robust_se_logit_1_binar_size,robust_se_1_binar,
+                                robust_se_logit_1_binar_investor_only, robust_se_1_binar_investor,
+                                robust_se_logit_1_classified_snum,robust_se_logit_1_classified_size,robust_se_1_classified,
+                                robust_se_logit_1_classified_investor_only, robust_se_1_classified_investor)))
+note.latex <- "\\multicolumn{11}{l} {\\parbox[t]{22cm}{ \\textit{Notes:} Logistic regression  of the equation $Y = a + b x + g N +controls+e$.
+ \\textit{won\\_brep\\_dummy} is an indicator variable equal to 1 when at least 1 activist nominee was elected to the board.\\textit{success\\_of\\_stated\\_obj} is an indicator of fulfillment of activists' demands.  \\textit{active.activist.size} correponds to the total assets of an activist group, computed from 13F filings. \\textit{investor.number} is a total number of institutional investors that hold shares of a company. \\textit{total.activist.number} is the number of passive activist investors that hold shares of the company. Activist investor is defined as any investor that appeared in SharkWatch database at least once. Robust standard errors in parenthesis.  }} \\\\"
+star[grepl("Note",star)] <- note.latex
+cat (star, sep = "\n")
+
+# Run OLS regressions of type ONE -- with heter robust se's 
+
+ols_1_binar_snum <- lm(won_brep_dummy ~total.activist.number, data = short.data.compust)
+robust_se_ols_1_binar_snum   <- sqrt(diag( vcovHC(ols_1_binar_snum)))
+
+ols_1_binar_size <- lm(won_brep_dummy ~log(active.activist.size), data = short.data.compust)
+robust_se_ols_1_binar_size   <- sqrt(diag( vcovHC(ols_1_binar_size)))
+
+ols1_binar <- lm(won_brep_dummy ~ log(active.activist.size)+total.activist.number, data = short.data.compust)
+robust_se_ols1_binar   <- sqrt(diag( vcovHC(ols1_binar) ))
+
+ols1_binar_investor <- lm(won_brep_dummy ~ log(active.activist.size)+investor.number, data = short.data.compust)
+robust_se_ols1_binar_investor   <- sqrt(diag( vcovHC(ols1_binar_investor) ))
+
+ols_1_classified_snum <- lm(success_of_stated_obj ~total.activist.number, data = short.data.compust)
+robust_se_ols_1_classified_snum   <- sqrt(diag( vcovHC(ols_1_classified_snum)))
+
+ols_1_classified_size <- lm(success_of_stated_obj ~log(active.activist.size), data = short.data.compust)
+robust_se_ols_1_classified_size   <- sqrt(diag( vcovHC(ols_1_classified_size)))
+
+ols1_classified <- lm(success_of_stated_obj ~ log(active.activist.size)+total.activist.number, data = short.data.compust)
+robust_se_ols1_classified   <- sqrt(diag( vcovHC(ols1_classified) ))
+
+
+ols1_classified_investor <- lm(success_of_stated_obj ~ log(active.activist.size)+investor.number, data = short.data.compust)
+robust_se_ols1_classified_investor   <- sqrt(diag(vcovHC(ols1_classified_investor) ))
+
+# Add controls
+
+ols1_binar_controls <- lm(won_brep_dummy ~ log(active.activist.size)+total.activist.number+age+log(size)+leverage+mtb, data = short.data.compust)
+robust_se_ols1_binar_controls   <- sqrt(diag( vcovHC(ols1_binar_controls) ))
+
+ols1_classified_controls <- lm(success_of_stated_obj ~ log(active.activist.size)+total.activist.number+age+log(size)+leverage+mtb, data = short.data.compust)
+robust_se_ols1_classified_controls   <- sqrt(diag( vcovHC(ols1_classified_controls) ))
+
+# SECOND STARGAZER OUTPUT IS HERE
+
+star=capture.output(stargazer(ols_1_binar_snum,ols_1_binar_size, ols1_binar,ols1_binar_investor,ols1_binar_controls,
+                        ols_1_classified_snum,ols_1_classified_size, ols1_classified, ols1_classified_investor, ols1_classified_controls,
+          type = "latex",  title = "OLS regressions with robust standard errors.", font.size = "scriptsize", float.env="sidewaystable",header = FALSE,
+           omit.stat=c("f", "ser"),
+          se=list(robust_se_ols_1_binar_snum,robust_se_ols_1_binar_size, robust_se_ols1_binar,robust_se_ols1_binar_investor,robust_se_ols1_binar_controls,
+                  robust_se_ols_1_classified_snum,robust_se_ols_1_classified_size, robust_se_ols1_classified,
+                  robust_se_ols1_classified_investor,robust_se_ols1_classified_controls)))
+note.latex <- "\\multicolumn{11}{l} {\\parbox[t]{22cm}{ \\textit{Notes:} OLS regression  of the equation $Y = a + b x + g N +controls+e$.
+ \\textit{won\\_brep\\_dummy} is an indicator variable equal to 1 when at least 1 activist nominee was elected to the board.\\textit{success\\_of\\_stated\\_obj} is an indicator of fulfillment of activists' demands.  \\textit{active.activist.size} correponds to the total assets of an activist group, computed from 13F filings. \\textit{investor.number} is a total number of institutional investors that hold shares of a company. \\textit{total.activist.number} is the number of passive activist investors that hold shares of the company. Activist investor is defined as any investor that appeared in SharkWatch database at least once. \\textit{size} is the market value of the company. \\textit{age} is the age of the company. \\textit{leverage} is the leverage of the company.  Robust standard errors in parenthesis.  }} \\\\"
+star[grepl("Note",star)] <- note.latex
+cat (star, sep = "\n")
+
+
+
+# Sales and operational profitab growth as outcome variables
+
+ols1_sales <- lm(sales_growth ~ log(active.activist.size)+total.activist.number, data = short.data.compust)
+robust_se_ols1_sales   <- sqrt(diag( vcovHC(ols1_sales) ))
+
+ols1_sales_controls <- lm(sales_growth ~ log(active.activist.size)+total.activist.number+age+log(size)+leverage+mtb, data = short.data.compust)
+robust_se_ols1_sales_controls   <- sqrt(diag( vcovHC(ols1_sales_controls) ))
+
+
+ols1_operat <- lm(oper_profit_growth ~ log(active.activist.size)+total.activist.number, data = short.data.compust)
+robust_se_ols1_operat    <- sqrt(diag( vcovHC(ols1_operat) ))
+
+
+ols1_operat_controls <- lm(oper_profit_growth ~ log(active.activist.size)+total.activist.number+total.activist.number+age+log(size)+leverage+mtb, data = short.data.compust)
+robust_se_ols1_operat_controls    <- sqrt(diag( vcovHC(ols1_operat_controls) ))
+
+# THIRD STARGAZER OUTPUT IS HERE
+
+ols1_output_operat = capture.output( stargazer(ols1_sales, ols1_sales_controls, ols1_operat,ols1_operat_controls,
+          type = "latex",  title = "OLS regressions with robust se,  operational outcome variables", header = FALSE,
+          omit.stat=c("f", "ser"),
+          se=list(robust_se_ols1_sales, robust_se_ols1_sales_controls, robust_se_ols1_operat,robust_se_ols1_operat_controls)))
+
+note.latex <- "\\multicolumn{5}{l} {\\parbox[t]{12cm}{ \\footnotesize \\textit{Notes:} OLS regression  of the equation $ Y = \\alpha + \\beta x + \\gamma N +controls+\\epsilon$.
+ \\textit{sales\\_growth} is the growth of sales over the span of the campaign. \\textit{oper\\_profit\\_growth} is an operational profitability growth over the span of the campaign. Operational profitability is defined as in    \\textit{active.activist.size} correponds to the total assets of an activist group, computed from 13F filings. \\textit{investor.number} is a total number of institutional investors that hold shares of a company. \\textit{total.activist.number} is the number of passive activist investors that hold shares of the company. Activist investor is defined as any investor that appeared in SharkWatch database at least once. \\textit{size} is the market value of the company. \\textit{age} is the age of the company. \\textit{leverage} is the leverage of the company.  Robust standard errors in parenthesis.  }} \\\\"
+ols1_output_operat[grepl("Note",ols1_output_operat)] <- note.latex
+cat (ols1_output_operat, sep = "\n")
+
+
+
+#-------------------------------------------RUN TYPE 2 REGRESSIONS -------------------------------------------------------------------
+
+# Average
+
+ols_2_binar_av_s <- lm(won_brep_dummy ~ log(activist.size.average), data = short.data.compust)
+robust_se_ols_2_binar_av_s    <- sqrt(diag( vcovHC(ols_2_binar_av_s) ))
+
+ols_2_binar_av <- lm(won_brep_dummy ~ log(active.activist.size)+log(activist.size.average), data = short.data.compust)
+robust_se_ols_2_binar_av    <- sqrt(diag( vcovHC(ols_2_binar_av) ))
+
+
+ols_2_binar_controls_av <- lm(won_brep_dummy ~ log(active.activist.size)+log(activist.size.average)+age+log(size)+leverage+mtb, data = short.data.compust)
+robust_se_ols_2_binar_controls_av   <- sqrt(diag( vcovHC(ols_2_binar_controls_av) ))
+
+ols_2_classified_av_s <- lm(success_of_stated_obj ~ log(active.activist.size), data = short.data.compust)
+robust_se_ols_2_classified_av_s   <- sqrt(diag( vcovHC(ols_2_classified_av_s) ))
+
+ols_2_classified_av <- lm(success_of_stated_obj ~ log(active.activist.size)+log(activist.size.average), data = short.data.compust)
+robust_se_ols_2_classified_av   <- sqrt(diag( vcovHC(ols_2_classified_av) ))
+
+
+ols_2_classified_controls_av <- lm(success_of_stated_obj ~ log(active.activist.size)+log(activist.size.average)+age+log(size)+leverage+mtb, data = short.data.compust)
+robust_se_ols_2_classified_controls_av   <- sqrt(diag( vcovHC(ols_2_classified_controls_av) ))
+
+
+# Value weighted
+
+ols_2_binar_s <- lm(won_brep_dummy ~ log(activist.size.vweighted), data = short.data.compust)
+robust_se_ols_2_binar_s   <- sqrt(diag( vcovHC(ols_2_binar_s) ))
+
+ols_2_binar <- lm(won_brep_dummy ~ log(active.activist.size)+log(activist.size.vweighted), data = short.data.compust)
+robust_se_ols_2_binar   <- sqrt(diag( vcovHC(ols_2_binar) ))
+
+ols_2_binar_controls <- lm(won_brep_dummy ~ log(active.activist.size)+log(activist.size.vweighted)+age+log(size)+leverage+mtb, data = short.data.compust)
+robust_se_ols_2_binar_controls   <- sqrt(diag( vcovHC(ols_2_binar_controls) ))
+
+ols_2_classified_s <- lm(success_of_stated_obj ~ log(activist.size.vweighted), data = short.data.compust)
+robust_se_ols_2_classified_s  <- sqrt(diag( vcovHC(ols_2_classified_s) ))
+
+ols_2_classified <- lm(success_of_stated_obj ~ log(active.activist.size)+log(activist.size.vweighted), data = short.data.compust)
+robust_se_ols_2_classified  <- sqrt(diag( vcovHC(ols_2_classified) ))
+
+
+ols_2_classified_controls <- lm(success_of_stated_obj ~ log(active.activist.size)+log(activist.size.vweighted)+age+log(size)+leverage+mtb, data = short.data.compust)
+robust_se_ols_2_classified_controls <- sqrt(diag( vcovHC(ols_2_classified_controls) ))
+
+
+# FOURTH STARGAZER OUTPUT IS HERE
+ols2_output = capture.output(stargazer(ols_2_binar_av_s, ols_2_binar_av, ols_2_binar_controls_av, ols_2_binar_s, ols_2_binar,ols_2_binar_controls,
+                       ols_2_classified_av_s, ols_2_classified_av,ols_2_classified_controls_av, ols_2_classified_s, ols_2_classified, ols_2_classified_controls,
+          type = "latex",  title = "Basic spillower OLS regressions with robust standard errors",font.size = "scriptsize", float.env="sidewaystable",header = FALSE,
+          omit.stat=c("f", "ser"),
+          se=list(robust_se_ols_2_binar_av_s, robust_se_ols_2_binar_av, robust_se_ols_2_binar_controls_av,
+                  robust_se_ols_2_binar_s, robust_se_ols_2_binar,robust_se_ols_2_binar_controls,
+                     robust_se_ols_2_classified_av_s, robust_se_ols_2_classified_av,robust_se_ols_2_classified_controls_av, robust_se_ols_2_classified_s, 
+                  robust_se_ols_2_classified, robust_se_ols_2_classified_controls )))
+
+note.latex <- "\\multicolumn{13}{l} {\\parbox[t]{24cm}{ \\textit{Notes:} OLS regression  of the equation $Y = \\alpha + \\beta x + \\gamma \\bar{x} +controls+\\epsilon$.
+ \\textit{won\\_brep\\_dummy} is an indicator variable equal to 1 when at least 1 activist nominee was elected to the board.\\textit{success\\_of\\_stated\\_obj} is an indicator of fulfillment of activists' demands.  \\textit{active.activist.size} correponds to the total assets of an activist group, computed from 13F filings.   \\textit{activist.size.vweghted} is the sum of all the company's activists' assets weighted by the share of investments in the company. \\textit{activist.size.average} is an average of total assets of company's activists. Activist investor is defined as any investor that appeared in SharkWatch database at least once. \\textit{size} is the market value of the company. \\textit{age} is the age of the company. \\textit{leverage} is the leverage of the company.  Robust standard errors in parenthesis.  }} \\\\"
+ols2_output[grepl("Note",ols2_output)] <- note.latex
+cat (ols2_output, sep = "\n")
+
+
+# With operational outcomes
+
+ols2_sales <- lm(sales_growth ~ log(active.activist.size)+log(activist.size.vweighted), data = short.data.compust)
+robust_se_ols2_sales <- sqrt(diag( vcovHC(ols2_sales) ))
+
+ols2_sales_controls <- lm(sales_growth ~ log(active.activist.size)+log(activist.size.vweighted)+age+log(size)+leverage+mtb, data = short.data.compust)
+robust_se_ols2_sales_controls <- sqrt(diag( vcovHC(ols2_sales_controls) ))
+
+
+ols_2_oper<- lm(oper_profit_growth ~ log(active.activist.size)+log(activist.size.vweighted), data = short.data.compust)
+robust_se_ols_2_oper <- sqrt(diag( vcovHC(ols_2_oper) ))
+
+
+ols_2_oper_controls <- lm(oper_profit_growth ~ log(active.activist.size)+log(activist.size.vweighted)+age+log(size)+leverage+mtb, data = short.data.compust)
+robust_se_ols_2_oper_controls <- sqrt(diag( vcovHC(ols_2_oper_controls) ))
+
+# FIFTH STARGAZER OUTPUT IS HERE
+ols2_output_oper= capture.output( stargazer(ols2_sales, ols2_sales_controls,ols_2_oper,ols_2_oper_controls,
+          type = "latex",  title = "Basic spillower OLS regressions with robust se, operational outcome variables",header = FALSE,
+          omit.stat=c("f", "ser"),
+          se=list(robust_se_ols2_sales,robust_se_ols2_sales_controls,robust_se_ols_2_oper,robust_se_ols_2_oper_controls)))
+
+note.latex <- "\\multicolumn{5}{l} {\\parbox[t]{13cm}{\\footnotesize \\textit{Notes:} OLS regression  of the equation $Y = \\alpha + \\beta x + \\gamma \\bar{x} +controls+\\epsilon$.
+ \\textit{sales\\_growth} is the growth of sales over the span of the campaign. \\textit{oper\\_profit\\_growth} is an operational profitability growth over the span of the campaign. Operational profitability is defined as in  Ball et. al (2016).  \\textit{active.activist.size} correponds to the total assets of an activist group, computed from 13F filings. \\\textit{active.activist.size} correponds to the total assets of an activist group, computed from 13F filings.   \\textit{activist.size.vweghted} is the sum of all the company's activists' assets weighted by the share of investments in the company. Activist investor is defined as any investor that appeared in SharkWatch database at least once. \\textit{size} is the market value of the company. \\textit{age} is the age of the company. \\textit{leverage} is the leverage of the company.  Robust standard errors in parenthesis.  }} \\\\"
+ols2_output_oper[grepl("Note",ols2_output_oper)] <- note.latex
+cat (ols2_output_oper, sep = "\n")
+
+
+
+#----------------------------------Run type 3 regressions - with centrality measures ---------------------------------
+
+cor2 = short.data.compust[c("success_of_stated_obj", "won_brep_dummy", "total.activist.number", "activist.size.vweighted",  "activist.size.average","age","leverage","size","mtb","oper_profit", "act_simple_closeness" ,      "act_simple_betweennes"  , "act_simple_bonacich" ,       "act_spring_closeness" ,      "act_spring_betweennes" ,     "act_spring_bonacich"   ,     "oth_simple_closeness",     
+"oth_simple_betweennes" ,     "oth_simple_bonacich"   ,     "oth_spring_closeness" ,      "oth_spring_betweennes"  ,    "oth_spring_bonacich" )]
+
+upper2=round( cor(cor2, use="pairwise.complete.obs"), 2)
+upper2[upper.tri(upper2)]<-""
+
+upper2<-as.data.frame(upper2)
+names(upper2) <- c(1:nrow(upper2))
+rownames(upper2) = paste0(1:nrow(upper2)," ", rownames(upper2))
+upper2_tex <- xtable(upper2,include.rownames=TRUE, digits=2)
+
+print(upper2_tex,
+      only.contents=TRUE,
+      include.rownames=TRUE,
+      include.colnames = TRUE,
+      type="latex",
+
+      floating = FALSE,
+      hline.after = NULL, comment = FALSE,
+      file="C:/Users/anakhmur/Documents/Networks/markdown/upper2_tex.tex")
+
+```
+
+
+\fontsize{10}{10}\selectfont
+\begin{center}
+\begin{sidewaystable}[p]\scriptsize
+		\caption{\scriptsize \textbf{Correlation table.}  \textit{won\_brep\_dummy} is an indicator variable equal to 1 when at least 1 activist nominee was elected to the board.\textit{success\_of\_stated\_obj} is an indicator of fulfillment of activists' demands. \textit{active.activist.size} correponds to the total assets of an activist group, computed from 13F filings. \textit{investor.number} is a total number of institutional investors that hold shares of a company. \textit{total.activist.number} is the number of passive activist investors that hold shares of the company. Activist investor is defined as any investor that appeared in SharkWatch database at least once. \textit{activist.size.vweghted} is the sum of all the company's activists' assets weighted by the share of investments in the company. \textit{activist.size.average} is an average of total assets of company's activists. \textit{size} is the market value of the company. \textit{age} is the age of the company. \textit{leverage} is the leverage of the company. \textit{mtb} is the market-to-book ratio of the company. \textit{oper\_profit} is an operating profitability of the company. All the other variables are centrality measures of activist network. Centrality captures the importance of the node position in a network. Three centrality measures are used. Closeness centrality shows how close each node to any other node. Betweennes centrality captures how well situated a node is in terms of the paths that it lies on. Degree centrality, is defined a the number of links incident to a node. Bonacich centrality is a degree centrality adjusted for the centrality of the neighbours in a network. The centrality measures were computed for both Simple and Spring networks. (By construction, centrality measures for Simple network are identical to the centrality measures of Number of Connections network.) I aggregated the centrality measures for each campaign. That is, \textit{act\_simple\_closeness} is a sum of closeness centralities of every active activist participating in a campaign, and \textit{oth\_simple\_closeness} is a sum of closeness centralities of every passive activist that invested in the company but does not participate in a campaign.}\centering \tiny
+\begin{tabular}{p{3.1cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}p{0.55cm}}
+\hline\hline
+	\input{"C:/Users/anakhmur/Documents/Networks/markdown/upper2_tex.tex"}
+	\hline\hline
+\end{tabular}
+\end{sidewaystable}
+\end{center}
+
+```{r star2, results = 'asis', warning=FALSE, message=FALSE,echo=FALSE}
+# Regressions are done here!
+
+library(stargazer, quietly = TRUE)
+library(sandwich, quietly = TRUE)
+#----------------------------------Run type 3 regressions - with centrality measures ---------------------------------
+# With number 
+
+ols3_binar_n_sic <- lm(won_brep_dummy ~ act_simple_closeness+total.activist.number, data = short.data.compust)
+re_ols3_binar_n_sic   <- sqrt(diag( vcovHC(ols3_binar_n_sic) ))
+
+ols3_binar_n_sibe <- lm(won_brep_dummy ~ act_simple_betweennes+total.activist.number, data = short.data.compust)
+re_ols3_binar_n_sibe   <- sqrt(diag( vcovHC(ols3_binar_n_sibe) ))
+
+ols3_binar_n_sibo <- lm(won_brep_dummy ~ act_simple_bonacich+total.activist.number, data = short.data.compust)
+re_ols3_binar_n_sibo   <- sqrt(diag( vcovHC(ols3_binar_n_sibo) ))
+
+ols3_binar_n_spc <- lm(won_brep_dummy ~ act_spring_closeness+total.activist.number, data = short.data.compust)
+re_ols3_binar_n_spc   <- sqrt(diag( vcovHC(ols3_binar_n_spc) ))
+
+ols3_binar_n_spbe <- lm(won_brep_dummy ~ act_spring_betweennes+total.activist.number, data = short.data.compust)
+re_ols3_binar_n_spbe  <- sqrt(diag( vcovHC(ols3_binar_n_spbe) ))
+
+ols3_binar_n_sbo <- lm(won_brep_dummy ~ act_spring_bonacich+total.activist.number, data = short.data.compust)
+re_ols3_binar_n_sbe   <- sqrt(diag( vcovHC(ols3_binar_n_sbo) ))
+
+
+ols3_classified_n_sic <- lm(success_of_stated_obj ~ act_simple_closeness+total.activist.number, data = short.data.compust)
+re_ols3_classified_n_sic   <- sqrt(diag( vcovHC(ols3_classified_n_sic) ))
+
+ols3_classified_n_sibe <- lm(success_of_stated_obj ~ act_simple_betweennes+total.activist.number, data = short.data.compust)
+re_ols3_classified_n_sibe   <- sqrt(diag( vcovHC(ols3_classified_n_sibe) ))
+
+ols3_classified_n_sibo <- lm(success_of_stated_obj ~ act_simple_bonacich+total.activist.number, data = short.data.compust)
+re_ols3_classified_n_sibo   <- sqrt(diag( vcovHC(ols3_classified_n_sibo) ))
+
+ols3_classified_n_spc <- lm(success_of_stated_obj ~ act_spring_closeness+total.activist.number, data = short.data.compust)
+re_ols3_classified_n_spc   <- sqrt(diag( vcovHC(ols3_classified_n_spc) ))
+
+ols3_classified_n_spbe <- lm(success_of_stated_obj ~ act_spring_betweennes+total.activist.number, data = short.data.compust)
+re_ols3_classified_n_spbe  <- sqrt(diag( vcovHC(ols3_classified_n_spbe) ))
+
+ols3_classified_n_sbo <- lm(success_of_stated_obj ~ act_spring_bonacich+total.activist.number, data = short.data.compust)
+re_ols3_classified_n_sbe   <- sqrt(diag( vcovHC(ols3_classified_n_sbo) ))
+
+
+ols3_n_output = capture.output( stargazer(ols3_binar_n_sic,ols3_binar_n_sibe,ols3_binar_n_sibo,
+                                       ols3_binar_n_spc, ols3_binar_n_spbe, ols3_binar_n_sbo,
+                                       ols3_classified_n_sic, ols3_classified_n_sibe, ols3_classified_n_sibo,
+                                       ols3_classified_n_spc, ols3_classified_n_spbe,ols3_classified_n_sbo,
+          type = "latex",  title = " OLS regressions with centrality measures, robust se",header = FALSE,
+          omit.stat=c("f", "ser"), font.size = "scriptsize", float.env="sidewaystable",
+          se=list(re_ols3_binar_n_sic,re_ols3_binar_n_sibe,re_ols3_binar_n_sibo,
+                  re_ols3_binar_n_spc,re_ols3_binar_n_spbe,re_ols3_binar_n_sbe,
+                  re_ols3_classified_n_sic,re_ols3_classified_n_sibe,re_ols3_classified_n_sibo,
+                  re_ols3_classified_n_spc,re_ols3_classified_n_spbe,re_ols3_classified_n_sbe)    ) )
+
+
+note.latex <- "\\multicolumn{12}{l} {\\parbox[t]{24cm}{ \\footnotesize \\textit{Notes:} OLS regression  of the equation $ Y = \\alpha + \\beta x + \\gamma N +controls+\\epsilon$. The regressions are run using the centrality measures to proxy for persuasiveness of an activist. Centrality is a characteristic of a node that captures the importance of the node position in a network. I use three centrality measures for this analysis. Closeness centrality shows how close each node to any other node. Betweennes centrality captures how well situated a node is in terms of the paths that it lies on. Degree centrality, is defined a the number of links incident to a node. Bonacich centrality is a degree centrality adjusted for the centrality of the neighbours in a network. The centrality measures were computed for both Simple and Spring networks. (By construction, centrality measures for Simple network are identical to the centrality measures of Number of Connections network.) After that I aggregated the centrality measures for each campaign. That is, $act\\_simple\\_closeness$ is a sum of closeness centralities of every active activist participating in a campaign, and $oth\\_simple\\_closeness$ is a sum of closeness centralities of every passive activist that invested in the company but does not participate in a campaign. $total.activist.number$ is the number of passive activist investors that hold shares of the company. 
+Robust standard errors in parenthesis.}} \\\\"
+ols3_n_output[grepl("Note",ols3_n_output)] <- note.latex
+cat (ols3_n_output, sep = "\n")
+
+# Two closeness measures
+
+ols3_binar_sic <- lm(won_brep_dummy ~ act_simple_closeness+oth_simple_closeness, data = short.data.compust)
+re_ols3_binar_sic   <- sqrt(diag( vcovHC(ols3_binar_sic) ))
+
+ols3_binar_sibe <- lm(won_brep_dummy ~ act_simple_betweennes+oth_simple_betweennes, data = short.data.compust)
+re_ols3_binar_sibe   <- sqrt(diag( vcovHC(ols3_binar_sibe) ))
+
+ols3_binar_sibo <- lm(won_brep_dummy ~ act_simple_bonacich+oth_simple_bonacich, data = short.data.compust)
+re_ols3_binar_sibo   <- sqrt(diag( vcovHC(ols3_binar_sibo) ))
+
+ols3_binar_spc <- lm(won_brep_dummy ~ act_spring_closeness+oth_spring_closeness, data = short.data.compust)
+re_ols3_binar_spc   <- sqrt(diag( vcovHC(ols3_binar_spc) ))
+
+ols3_binar_spbe <- lm(won_brep_dummy ~ act_spring_betweennes+oth_spring_betweennes, data = short.data.compust)
+re_ols3_binar_spbe  <- sqrt(diag( vcovHC(ols3_binar_spbe) ))
+
+ols3_binar_sbo <- lm(won_brep_dummy ~ act_spring_bonacich+oth_spring_bonacich, data = short.data.compust)
+re_ols3_binar_sbe   <- sqrt(diag( vcovHC(ols3_binar_sbo) ))
+
+
+ols3_classified_sic <- lm(success_of_stated_obj ~ act_simple_closeness+oth_simple_closeness, data = short.data.compust)
+re_ols3_classified_sic   <- sqrt(diag( vcovHC(ols3_classified_sic) ))
+
+ols3_classified_sibe <- lm(success_of_stated_obj ~ act_simple_betweennes+oth_simple_betweennes, data = short.data.compust)
+re_ols3_classified_sibe   <- sqrt(diag( vcovHC(ols3_classified_sibe) ))
+
+ols3_classified_sibo <- lm(success_of_stated_obj ~ act_simple_bonacich+oth_simple_bonacich, data = short.data.compust)
+re_ols3_classified_sibo   <- sqrt(diag( vcovHC(ols3_classified_sibo) ))
+
+ols3_classified_spc <- lm(success_of_stated_obj ~ act_spring_closeness+oth_spring_closeness, data = short.data.compust)
+re_ols3_classified_spc   <- sqrt(diag( vcovHC(ols3_classified_spc) ))
+
+ols3_classified_spbe <- lm(success_of_stated_obj ~ act_spring_betweennes+oth_spring_betweennes, data = short.data.compust)
+re_ols3_classified_spbe  <- sqrt(diag( vcovHC(ols3_classified_spbe) ))
+
+ols3_classified_sbo <- lm(success_of_stated_obj ~ act_spring_bonacich+oth_spring_bonacich, data = short.data.compust)
+re_ols3_classified_sbe   <- sqrt(diag( vcovHC(ols3_classified_sbo) ))
+
+
+ols3_output = capture.output( stargazer(ols3_binar_sic,ols3_binar_sibe,ols3_binar_sibo,
+                                       ols3_binar_spc, ols3_binar_spbe, ols3_binar_sbo,
+                                       ols3_classified_sic, ols3_classified_sibe, ols3_classified_sibo,
+                                       ols3_classified_spc, ols3_classified_spbe,ols3_classified_sbo,
+          type = "latex",  title = " OLS regressions with centrality measures, robust se",header = FALSE,
+          omit.stat=c("f", "ser"), font.size = "scriptsize", float.env="sidewaystable",
+          se=list(re_ols3_binar_sic,re_ols3_binar_sibe,re_ols3_binar_sibo,
+                  re_ols3_binar_spc,re_ols3_binar_spbe,re_ols3_binar_sbe,
+                  re_ols3_classified_sic,re_ols3_classified_sibe,re_ols3_classified_sibo,
+                  re_ols3_classified_spc,re_ols3_classified_spbe,re_ols3_classified_sbe)    ) )
+
+
+note.latex <- "\\multicolumn{12}{l} {\\parbox[t]{24cm}{\\footnotesize \\textit{Notes:} OLS regression  of the equation $Y = \\alpha + \\beta x + \\gamma \\bar{x} +controls+\\epsilon$.The regressions are run using the centrality measures to proxy for persuasiveness of an activist. Centrality is a characteristic of a node that captures the importance of the node position in a network. I use three centrality measures for this analysis. Closeness centrality shows how close each node to any other node. Betweennes centrality captures how well situated a node is in terms of the paths that it lies on. Degree centrality, is defined a the number of links incident to a node. Bonacich centrality is a degree centrality adjusted for the centrality of the neighbours in a network. The centrality measures were computed for both Simple and Spring networks. (By construction, centrality measures for Simple network are identical to the centrality measures of Number of Connections network.) After that I aggregated the centrality measures for each campaign. That is, $act\\_simple\\_closeness$ is a sum of closeness centralities of every active activist participating in a campaign, and $oth\\_simple\\_closeness$ is a sum of closeness centralities of every passive activist that invested in the company but does not participate in a campaign. 
+Robust standard errors in parenthesis. }} \\\\"
+ols3_output[grepl("Note",ols3_output)] <- note.latex
+cat (ols3_output, sep = "\n")
+
+
+```
+
