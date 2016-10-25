@@ -187,6 +187,28 @@ for ( campaign_id in unique(clean.shark.final$campaign_id) ){
 
 save(potential, file="potential_obs_shark")
 
+# Compile a file for Saule
+
+load("potential_obs_shark")
+load("short.data.classified")
+load("short.data.compust")
+
+class_list = unique(c( short.data$campaign.id, short.data.compust$campaign.id ) )
+todo_list = setdiff(potential[,1], class_list)
+
+setwd("~/Networks/Analysis")
+load("clean.shark.final")
+shark =clean.shark.final[(clean.shark.final$announce_date < "2015-01-01"),]
+
+todo = shark [which(shark$campaign_id %in% todo_list),]
+todo = todo[c("company_name", "campaign_id", "outcome", "synopsis_text",
+              "announce_date", "dissident_group","cusip_9_digit")]
+
+todo=unique(todo)
+
+write.csv( todo, file="to_classify_Saule.csv"  )
+
+
 #-------------check the total number of potential observations --- 309+100=~400; to classify 309! + 30 (or 52, counting mgrno) from gantchev haha
 rm(list=ls())
 

@@ -102,7 +102,8 @@ investor.number <- length( unique(sub$cik) )
 activist.set <- sub[sub$cik %in% passive.activist.list,]
 
 active.activist.set <- sub[sub$cik %in% active.activist.list,]
-# 
+active.activist.number = length ( unique(active.activist.set$cik)  )
+
 if ( nrow(activist.set) >0 & nrow(active.activist.set) >0 ){
 
 # if ( nrow(active.activist.set) >0 ){
@@ -153,7 +154,7 @@ success_objective_3=subsh.camp$success_objective_3
 iss_supports = subsh.camp$iss_supports
 glass_lewis_supports = subsh.camp$glass_lewis_supports
 
-output <- data.frame(campaign.id, cusip6, investor.number, 
+output <- data.frame(campaign.id, cusip6, investor.number,active.activist.number, 
                      total.activist.number, won_brep_dummy, won_brep_percent,
                      total.activist.size,activist.size.vweighted,
                      success_of_stated_obj, active.activist.size,

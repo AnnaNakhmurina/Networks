@@ -304,7 +304,17 @@ cik_13f = fd
 
 cik_13f$cusip6 <- substr(cik_13f$cusip, 1,6)
 
-save(cik_13f, file="13f_2008_2013_cik")
+save(cik_13f, file="13f_2008_2014_cik")
 
+#
+library(data.table)
+load("13f_2008_2014_cik")
+# Value
+cik_13f$value  = cik_13f$prc*cik_13f$shares/(1000000)
+cik_13f = cik_13f[which(!is.na(cik_13f$value)),]
+cik_13f = as.data.table(cik_13f)
+cik_13f <-cik_13f[, total.value := sum( as.numeric(value) ), by = list(cik, rdate)]
 
+cik_13f = as.data.frame(cik_13f)
 
+save(cik_13f, file="13f_2008_2014_cik")

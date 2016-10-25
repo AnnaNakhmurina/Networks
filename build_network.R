@@ -61,8 +61,8 @@ cusip_subset <- cusip_subset[c("datadate","cusip6","cik","total.value.mln","valu
 cusip_subset <- cusip_subset[ order(cusip_subset$cusip6), ]
 
 # activists only:
-load("clean.shark.partial")
-full_activist_list <- unique(clean.shark.partial$cik)
+load("clean.shark.final")
+full_activist_list <- unique(clean.shark.final$cik)
 cusip_subset <- cusip_subset[ which(cusip_subset$cik %in% full_activist_list), ]
 
 cusip6_list <- unique(cusip_subset$cusip6)
