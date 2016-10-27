@@ -5,65 +5,43 @@ library(data.table)
 
 setwd("~/Networks/Analysis")
 temp.space <- new.env()
-cusip_all <- get(load("13f_2000_2014_cik", temp.space), temp.space)
+cusip_all <- get(load("13f_2000_2014_cik_dt", temp.space), temp.space)
+# cusip_all <- get(load("dt_13", temp.space), temp.space)
 rm(temp.space)
-
 
 cusip_all <- data.frame(cusip_all)
 cusip_all <- cusip_all[rowSums(is.na(cusip_all))<ncol(cusip_all),] #???
 # cusip_all$period <- as.Date(cusip_all$period, "%m-%d-%Y")
 
-# SET PERIOD HERE
-cusip_subset <- cusip_all[which(cusip_all$date > "2013-2-28" & cusip_all$date < "2013-4-30"),]
-rm(cusip_all)
-
-# SET CURRENT PERIOD!!!!! (the period of network formation )
-
-current = as.Date( "2014-03-31", "%Y-%m-%d")
-
-compustat_all <- read.csv("compustat_q_2015.csv")
-compustat=compustat_all
-compustat$cusip6 <- substr(compustat$cusip,1,6)
-compustat$period = as.Date(as.character(compustat$datadate),"%Y%m%d")
-# # creation dates:
-# compustat_firstdate <- aggregate( compustat[c("datadate")], compustat[c("cusip6")], FUN=min )
-# compustat_ages$date <- as.Date(as.character(compustat_ages$datadate),"%Y%m%d")
-
-for (i in 1:nrow(compustat)) {
-  if(!is.na(compustat$mkvalt[i])) {
-    compustat$market.value.mln[i] <- compustat$mkvaltq[i]
-  } else {
-    compustat$market.value.mln[i] <- compustat$cshoq[i]*compustat$prccq[i]
-  }
-}
+load("compustat_short_2000_2014")
 
 compustat <- unique( compustat[c("cusip6","cusip", "datadate", "market.value.mln", "period")] ) #???
 compustat <- compustat[complete.cases(compustat),] #???
+
+load("clean.shark.final")
+full_activist_list <- unique(clean.shark.final$cik)
+full_activist_list <- full_activist_list [which(!is.na(full_activist_list))]
+
+# SET PERIOD HERE
+cusip_subset <- cusip_all[which(cusip_all$date > "2007-2-28" & cusip_all$date < "2007-4-30"),]
+
+# SET CURRENT PERIOD!!!!! (the period of network formation )
+
+current = as.Date( "2007-3-31", "%Y-%m-%d")
 
 compustat_nearestperiod <- aggregate( compustat[c("period")], compustat[c("cusip6")], FUN=function(x) { return( max(x[x<=current]) ) } )
 compustat_nearestperiod <- compustat_nearestperiod[complete.cases(compustat_nearestperiod),]
 ok = merge(compustat_nearestperiod, compustat, by=c("period","cusip6"))
 ok <- aggregate( ok[c("market.value.mln")], ok[c("cusip6")], FUN=sum )
-# #??????????????????
-# compustat$year <- compustat$datadate%/%10000
-# # compustat <- aggregate( compustat$market.value.mln, compustat[c("cusip6", "datadate")], FUN=sum )
-# compustat <- compustat[which(compustat$year==2015),]
-# compustat <- aggregate( compustat[c("market.value.mln")], compustat[c("cusip6")], FUN=sum )
 
 cusip_subset <- merge(cusip_subset, ok, by="cusip6")
-# cusip_subset <- merge(cusip_subset, compustat, by=c("datadate", "cusip6"))
-# rm(compustat)
-cusip_subset$value.mln <- as.numeric(cusip_subset$value.mln.all)/1000.
-cusip_subset$total.value.mln <- as.numeric(cusip_subset$total.value)/1000.
-
-cusip_subset <- cusip_subset[c("datadate","cusip6","cik","total.value.mln","value.mln","market.value.mln")]
+cusip_subset$value.mln <- as.numeric(cusip_subset$value.mln.all)
+cusip_subset$total.value.mln <- as.numeric(cusip_subset$total.value)
+cusip_subset = cusip_subset[c("date","cusip6","cik","total.value.mln","value.mln","market.value.mln")]
 cusip_subset <- cusip_subset[ order(cusip_subset$cusip6), ]
 
 # activists only:
-load("clean.shark.final")
-full_activist_list <- unique(clean.shark.final$cik)
 cusip_subset <- cusip_subset[ which(cusip_subset$cik %in% full_activist_list), ]
-
 cusip6_list <- unique(cusip_subset$cusip6)
 
 fund_network <- data.frame(fund1=character(), 
@@ -123,8 +101,9 @@ for ( i in start:end ) {
   # fund_network <- rbind(fund_network,fund_network_i)
 }
 
-save(fund_network, file="fund_network_1q_2015")
-#Delete duplicate funds
+save(fund_network, file="fund_network_1q_2007")
+
+#-------------------------------Delete duplicate funds
 load("fund_network_2q_2015")
 
 fund_network <- fund_network[which(fund_network$fund1 != fund_network$fund2),]

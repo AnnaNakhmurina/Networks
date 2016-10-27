@@ -6,23 +6,6 @@ setwd("~/Networks/Analysis")
 
 load("clean.shark.final")
 
-
-classified <- read.csv("classified.2015.csv")
-classified$announce_date <- as.Date(classified$announce_date, "%m/%d/%Y")
-classified.2015 <- classified[(classified$announce_date< "2016-1-1"),]
-c.2015 <- classified.2015[c("campaign_id","activist_objective_1","success_objective_1",
-                            "Board.seats.granted.if.objective.is.not.disclosed","Board.seats.up",
-                            "activist_objective_2","success_objective_2","activist_objective_3",
-                            "success_objective_3")]
-data_15 = merge(c.2015, clean.shark.final, by="campaign_id")
-
-shark.sub.2015 <- data_15[which(data_15$activist_objective_1 != "General undervaluation/maximize shareholder value"),]
-
-shark.sub.2015$cusip6 <- substr(shark.sub.2015$cusip_9_digit, 1,6)
-shark.sub.2015 <- shark.sub.2015[rowSums(is.na(shark.sub.2015))<ncol(shark.sub.2015),]
-shark.sub.2015 = unique(shark.sub.2015)
-
-
 classified <- read.csv("to_classify_merged_all_classified.csv")
 load("ganch_shark_merged")
 convert= read.csv("ganch_convert_demand.csv")
@@ -229,7 +212,88 @@ for (i in 1: length(cusip.list) ){
 
 save(short.data, file="short.data.classified")
 
+# 
+
 
 # ----------- Add COMPUSTAT to the short data
+load("compustat_short_2000_2014")
+load("short.data.classified")
+
+current = sort( unique( same.cusips_13f$date[! is.na(same.cusips_13f$date)] ) )
 
 
+compustat_nearestperiod <- aggregate( compustat[c("period")], 
+                                      compustat[c("cusip6","date")], 
+                                      FUN=function(x) { return( min(current[x<=current]) ) })
+
+compustat_nearestperiod <- compustat_nearestperiod[complete.cases(compustat_nearestperiod),]
+names(compustat_nearestperiod) = c("cusip6", "date", "quarter.period")
+
+compustat.short <- compustat[c("cusip6", "datadate","date","age", "leverage", "size",
+                               "mtb","oper_profit",  "roa", "tobins_q", 
+                               "asset_turnover", "rd_to_assets" ,"revtq")]
+
+compustat.short = merge(compustat.short,compustat_nearestperiod, by=c("date", "cusip6"))
+
+compustat.end.period <- compustat.short[c("cusip6", "quarter.period", "revtq",
+                                          "oper_profit")]
+
+names(compustat.end.period) <- c("cusip6", "quarter.period", "revtq_end","oper_profit_end")
+# Bind compustat and short.data
+
+short.data.compust <- merge(short.data, compustat.short, by.x=c("beginning.quarter", "cusip6"), 
+                            by.y=c("quarter.period", "cusip6"), all.x=TRUE)
+short.data.compust <- merge(short.data.compust, compustat.end.period, by.x=c("ending.quarter", "cusip6"),
+                            by.y=c("quarter.period", "cusip6"), all.x=TRUE)
+
+
+short.data.compust$sales_growth = (short.data.compust$saleq_end - short.data.compust$saleq)/short.data.compust$saleq
+short.data.compust$oper_profit_growth = (short.data.compust$oper_profit_end - short.data.compust$oper_profit)/short.data.compust$oper_profit
+
+load("reduced_campaign")
+
+short.data.compust = unique( merge(short.data.compust, reduced_campaign, by.x="campaign.id", by.y= "campaign_id", all.x=TRUE) )
+
+save(short.data.compust, file="short.data.compust_2000_2014")
+
+#----------------Nice! Now combine 200-2014 data and 2015 data
+rm(list=ls())
+setwd("~/Networks/Analysis")
+
+
+load("short.data.compust_2000_2014")
+
+# Add campaign characteristics
+load("shark.sub.all")
+char = shark.sub.all[c("campaign_id","activist_objective_1",
+                       "activist_objective_2","activist_objective_3")]
+
+short.data.compust_2000_2014 = merge(short.data.compust, char, by.x="campaign.id", by.y="campaign_id")
+short.data.compust_2000_2014 = unique(short.data.compust_2000_2014)
+
+load("short.data.compust")
+load("shark.sub.2015")
+
+char.15 = shark.sub.2015[c("campaign_id","activist_objective_1",
+                           "activist_objective_2","activist_objective_3")]
+
+short.data.compust_2015 = merge(short.data.compust, char.15, by.x="campaign.id", by.y="campaign_id")
+short.data.compust_2015 = unique(short.data.compust_2015)
+
+sh = rbind.fill(short.data.compust_2000_2014, short.data.compust_2015)
+
+exit_s_f <- vector()
+
+for (i in 1:nrow(sh)){
+  s = sh$exit_stage[i]
+  if(s == "demand_negot" ){exit_s_f[i] = 1}else{
+    if( s == "board_repres"){exit_s_f[i] = 2}else{exit_s_f[i] = 3}
+  }
+  
+}
+
+sh$exit_s_f = exit_s_f
+
+short.data.compust = sh
+
+save(short.data.compust, file="short.data.compust_2000_2015")
