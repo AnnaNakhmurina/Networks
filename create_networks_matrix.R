@@ -26,7 +26,7 @@ compustat$cusip6 <-  substr(compustat$cusip, 1,6)
 compustat.short <- compustat[c("cusip6","mkvalt", "csho", "prcc_f", "datadate")]
 
 
-a = filter(compustat.short, cusip6 == "03761U" & cik == "902584")
+# a = filter(compustat.short, cusip6 == "03761U" & cik == "902584")
 
 for (i in 1:nrow(compustat.short)){
 if(!is.na(compustat.short$mkvalt[i])){

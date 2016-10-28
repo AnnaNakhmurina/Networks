@@ -2,6 +2,7 @@
 # This file reads and combines all the manually classified data including the gantchev's data
 
 rm(list=ls())
+gc()
 setwd("~/Networks/Analysis")
 
 load("clean.shark.final")
@@ -75,16 +76,16 @@ shark.sub.all=unique(shark.sub.all)
 
 load("reduced_campaign")
 
-shark.sub.2015 = merge(shark.sub.2015, reduced_campaign, by="campaign_id")
+# shark.sub.2015 = merge(shark.sub.2015, reduced_campaign, by="campaign_id")
 shark.sub.all = merge(shark.sub.all, reduced_campaign, by="campaign_id")
 
 save(shark.sub.all, file="shark.sub.all")
-save(shark.sub.2015, file="shark.sub.2015")
+# save(shark.sub.2015, file="shark.sub.2015")
 
 #-----------------------Add 13F data to it!
 load("shark.sub.all")
 load("clean.shark.final")
-load("13f_2008_2014_cik")
+load("13f_2000_2014_w_centralities")
 
 
 # We are only going to need filings that concern a list of given companies as a first step
@@ -152,25 +153,26 @@ for (i in 1: length(cusip.list) ){
           activist.size.average <- mean(activist.set$total.value)
           active.activist.size <- sum( unique(active.activist.set$total.value) )
           
-          # 
-          # # Alo intoduce betweenness, closeness and bonachich centrality for rach of the networks 
-          # # Choose to characterize the centrality of a group as a sum of members centrality
-          # 
-          # act_simple_closeness <- sum(  active.activist.set$simple_clos  )
-          # act_simple_betweennes <- sum(  active.activist.set$simple_between  )
-          # act_simple_bonacich <- sum(  active.activist.set$simple_bonacich  )
-          # act_spring_closeness <- sum(  active.activist.set$spring_clos  )
-          # act_spring_betweennes <- sum(  active.activist.set$spring_between  )
-          # act_spring_bonacich <- sum(  active.activist.set$spring_bonacich  )
-          # 
-          # # Add cumulative centrality of the other activist investors in the company
-          # oth_simple_closeness <- sum(  activist.set$simple_clos  )
-          # oth_simple_betweennes <- sum(  activist.set$simple_between  )
-          # oth_simple_bonacich <- sum(  activist.set$simple_bonacich  )
-          # oth_spring_closeness <- sum(  activist.set$spring_clos  )
-          # oth_spring_betweennes <- sum(  activist.set$spring_between  )
-          # oth_spring_bonacich <- sum(  activist.set$spring_bonacich  )
-          # 
+
+          # Alo intoduce betweenness, closeness and bonachich centrality for rach of the networks
+          # Choose to characterize the centrality of a group as a sum of members centrality
+
+          act_s_clos <- sum(  active.activist.set$simple_clos  )
+          act_s_betw <- sum(  active.activist.set$simple_between  )
+          act_s_bon <- sum(  active.activist.set$simple_bonacich  )
+          act_sp_clos <- sum(  active.activist.set$spring_clos  )
+          act_sp_betw <- sum(  active.activist.set$spring_between  )
+          act_sp_bon <- sum(  active.activist.set$spring_bonacich  )
+
+                    # Add cumulative centrality of the other activist investors in the company
+          oth_s_clos <- sum(  activist.set$simple_clos  )
+          oth_s_betw <- sum(  activist.set$simple_between  )
+          oth_s_bon <- sum(  activist.set$simple_bonacich  )
+          oth_sp_clos <- sum(  activist.set$spring_clos  )
+          oth_sp_betw <- sum(  activist.set$spring_between  )
+          oth_sp_bon <- sum(  activist.set$spring_bonacich  )
+
+       
           outcome <- unique( subsh.camp$dissident_board_seats_won )
           
           if (  outcome %in% c(0) ){won_brep_dummy = 0}else{ won_brep_dummy = 1 }
@@ -193,11 +195,11 @@ for (i in 1: length(cusip.list) ){
                                total.activist.size,activist.size.vweighted,
                                success_of_stated_obj, active.activist.size,
                                activist.size.average,beginning.quarter,ending.quarter, success_objective_1, success_objective_2, success_objective_3,
-                               iss_supports,glass_lewis_supports)
-                               # act_simple_closeness, act_simple_betweennes, act_simple_bonacich,
-                               # act_spring_closeness, act_spring_betweennes, act_spring_bonacich,
-                               # oth_simple_closeness, oth_simple_betweennes, oth_simple_bonacich,
-                               # oth_spring_closeness, oth_spring_betweennes, oth_spring_bonacich)
+                               iss_supports,glass_lewis_supports,
+                               act_s_clos, act_s_betw, act_s_bon, act_sp_clos, 
+                               act_sp_betw, act_sp_bon,
+                               oth_s_clos,oth_s_betw, oth_s_bon, oth_sp_clos, 
+                               oth_sp_betw, oth_sp_bon)
           short.data <- rbind(short.data, output)
           
         }
@@ -212,12 +214,10 @@ for (i in 1: length(cusip.list) ){
 
 save(short.data, file="short.data.classified")
 
-# 
-
-
 # ----------- Add COMPUSTAT to the short data
-load("compustat_short_2000_2014")
+load("13f_2000_2014_w_centralities")
 load("short.data.classified")
+load("compustat_short_2000_2014")
 
 current = sort( unique( same.cusips_13f$date[! is.na(same.cusips_13f$date)] ) )
 
@@ -247,7 +247,7 @@ short.data.compust <- merge(short.data.compust, compustat.end.period, by.x=c("en
                             by.y=c("quarter.period", "cusip6"), all.x=TRUE)
 
 
-short.data.compust$sales_growth = (short.data.compust$saleq_end - short.data.compust$saleq)/short.data.compust$saleq
+short.data.compust$sales_growth = (short.data.compust$revtq_end - short.data.compust$revtq)/short.data.compust$revtq
 short.data.compust$oper_profit_growth = (short.data.compust$oper_profit_end - short.data.compust$oper_profit)/short.data.compust$oper_profit
 
 load("reduced_campaign")
@@ -259,7 +259,7 @@ save(short.data.compust, file="short.data.compust_2000_2014")
 #----------------Nice! Now combine 200-2014 data and 2015 data
 rm(list=ls())
 setwd("~/Networks/Analysis")
-
+library(plyr)
 
 load("short.data.compust_2000_2014")
 

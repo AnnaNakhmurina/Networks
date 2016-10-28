@@ -122,21 +122,20 @@ active.activist.size <- sum( unique(active.activist.set$total.value) )/1000
 
 # Alo intoduce betweenness, closeness and bonachich centrality for rach of the networks 
 # Choose to characterize the centrality of a group as a sum of members centrality
-
-act_simple_closeness <- sum(  active.activist.set$simple_clos  )
-act_simple_betweennes <- sum(  active.activist.set$simple_between  )
-act_simple_bonacich <- sum(  active.activist.set$simple_bonacich  )
-act_spring_closeness <- sum(  active.activist.set$spring_clos  )
-act_spring_betweennes <- sum(  active.activist.set$spring_between  )
-act_spring_bonacich <- sum(  active.activist.set$spring_bonacich  )
+act_s_clos <- sum(  active.activist.set$simple_clos  )
+act_s_betw <- sum(  active.activist.set$simple_between  )
+act_s_bon <- sum(  active.activist.set$simple_bonacich  )
+act_sp_clos <- sum(  active.activist.set$spring_clos  )
+act_sp_betw <- sum(  active.activist.set$spring_between  )
+act_sp_bon <- sum(  active.activist.set$spring_bonacich  )
 
 # Add cumulative centrality of the other activist investors in the company
-oth_simple_closeness <- sum(  activist.set$simple_clos  )
-oth_simple_betweennes <- sum(  activist.set$simple_between  )
-oth_simple_bonacich <- sum(  activist.set$simple_bonacich  )
-oth_spring_closeness <- sum(  activist.set$spring_clos  )
-oth_spring_betweennes <- sum(  activist.set$spring_between  )
-oth_spring_bonacich <- sum(  activist.set$spring_bonacich  )
+oth_s_clos <- sum(  activist.set$simple_clos  )
+oth_s_betw <- sum(  activist.set$simple_between  )
+oth_s_bon <- sum(  activist.set$simple_bonacich  )
+oth_sp_clos <- sum(  activist.set$spring_clos  )
+oth_sp_betw <- sum(  activist.set$spring_between  )
+oth_sp_bon <- sum(  activist.set$spring_bonacich  )
 
 outcome <- unique( subsh.camp$dissident_board_seats_won )
 
@@ -160,10 +159,10 @@ output <- data.frame(campaign.id, cusip6, investor.number,active.activist.number
                      success_of_stated_obj, active.activist.size,
                      activist.size.average,beginning.quarter,ending.quarter, success_objective_1, success_objective_2, success_objective_3,
                      iss_supports,glass_lewis_supports,
-                     act_simple_closeness, act_simple_betweennes, act_simple_bonacich,
-                     act_spring_closeness, act_spring_betweennes, act_spring_bonacich,
-                     oth_simple_closeness, oth_simple_betweennes, oth_simple_bonacich,
-                     oth_spring_closeness, oth_spring_betweennes, oth_spring_bonacich)
+                     act_s_clos, act_s_betw, act_s_bon, act_sp_clos, 
+                     act_sp_betw, act_sp_bon,
+                     oth_s_clos,oth_s_betw, oth_s_bon, oth_sp_clos, 
+                     oth_sp_betw, oth_sp_bon)
 short.data <- rbind(short.data, output)
 
 }

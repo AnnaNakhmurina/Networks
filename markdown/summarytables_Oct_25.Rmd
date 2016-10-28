@@ -302,10 +302,10 @@ out = cbind("network variable", name, out)
 short.summary = rbind(short.summary, out)}
 
 
-load("networks_summary_2015")
-networks_summary_2015 = cbind("network variable", networks_summary_2015 )
-names(networks_summary_2015) = names(short.summary) 
-short.summary = rbind(short.summary, networks_summary_2015)
+load("networks_summary_all")
+networks_summary_all = cbind("network variable", networks_summary_all )
+names(networks_summary_all) = names(short.summary) 
+short.summary = rbind(short.summary, networks_summary_all)
 
 controls = short.data.compust[c("size")]
 
@@ -695,8 +695,9 @@ cat (ols2_output_oper, sep = "\n")
 
 #----------------------------------Run type 3 regressions - with centrality measures ---------------------------------
 
-cor2 = short.data.compust[c("success_of_stated_obj", "won_brep_dummy", "total.activist.number", "activist.size.vweighted",  "activist.size.average","age","leverage","size","mtb","oper_profit", "act_simple_closeness" ,      "act_simple_betweennes"  , "act_simple_bonacich" ,       "act_spring_closeness" ,      "act_spring_betweennes" ,     "act_spring_bonacich"   ,     "oth_simple_closeness",     
-"oth_simple_betweennes" ,     "oth_simple_bonacich"   ,     "oth_spring_closeness" ,      "oth_spring_betweennes"  ,    "oth_spring_bonacich" )]
+cor2 = short.data.compust[c("success_of_stated_obj", "won_brep_dummy", "total.activist.number", "activist.size.vweighted", "activist.size.average","age","leverage","size","mtb","oper_profit",  "act_s_clos", "act_s_betw", "act_s_bon", "act_sp_clos",  "act_sp_betw", "act_sp_bon",
+                               "oth_s_clos","oth_s_betw", "oth_s_bon", "oth_sp_clos", 
+                               "oth_sp_betw", "oth_sp_bon" )]
 
 upper2=round( cor(cor2, use="pairwise.complete.obs"), 2)
 upper2[upper.tri(upper2)]<-""
@@ -739,41 +740,41 @@ library(sandwich, quietly = TRUE)
 #----------------------------------Run type 3 regressions - with centrality measures ---------------------------------
 # With number 
 
-ols3_binar_n_sic <- lm(won_brep_dummy ~ act_simple_closeness+total.activist.number, data = short.data.compust)
+ols3_binar_n_sic <- lm(won_brep_dummy ~ act_s_clos+total.activist.number, data = short.data.compust)
 re_ols3_binar_n_sic   <- sqrt(diag( vcovHC(ols3_binar_n_sic) ))
 
-ols3_binar_n_sibe <- lm(won_brep_dummy ~ act_simple_betweennes+total.activist.number, data = short.data.compust)
+ols3_binar_n_sibe <- lm(won_brep_dummy ~ act_s_betw+total.activist.number, data = short.data.compust)
 re_ols3_binar_n_sibe   <- sqrt(diag( vcovHC(ols3_binar_n_sibe) ))
 
-ols3_binar_n_sibo <- lm(won_brep_dummy ~ act_simple_bonacich+total.activist.number, data = short.data.compust)
+ols3_binar_n_sibo <- lm(won_brep_dummy ~ act_s_bon+total.activist.number, data = short.data.compust)
 re_ols3_binar_n_sibo   <- sqrt(diag( vcovHC(ols3_binar_n_sibo) ))
 
-ols3_binar_n_spc <- lm(won_brep_dummy ~ act_spring_closeness+total.activist.number, data = short.data.compust)
+ols3_binar_n_spc <- lm(won_brep_dummy ~ act_sp_clos+total.activist.number, data = short.data.compust)
 re_ols3_binar_n_spc   <- sqrt(diag( vcovHC(ols3_binar_n_spc) ))
 
-ols3_binar_n_spbe <- lm(won_brep_dummy ~ act_spring_betweennes+total.activist.number, data = short.data.compust)
+ols3_binar_n_spbe <- lm(won_brep_dummy ~ act_sp_betw+total.activist.number, data = short.data.compust)
 re_ols3_binar_n_spbe  <- sqrt(diag( vcovHC(ols3_binar_n_spbe) ))
 
-ols3_binar_n_sbo <- lm(won_brep_dummy ~ act_spring_bonacich+total.activist.number, data = short.data.compust)
+ols3_binar_n_sbo <- lm(won_brep_dummy ~ act_sp_bon+total.activist.number, data = short.data.compust)
 re_ols3_binar_n_sbe   <- sqrt(diag( vcovHC(ols3_binar_n_sbo) ))
 
 
-ols3_classified_n_sic <- lm(success_of_stated_obj ~ act_simple_closeness+total.activist.number, data = short.data.compust)
+ols3_classified_n_sic <- lm(success_of_stated_obj ~ act_s_clos+total.activist.number, data = short.data.compust)
 re_ols3_classified_n_sic   <- sqrt(diag( vcovHC(ols3_classified_n_sic) ))
 
-ols3_classified_n_sibe <- lm(success_of_stated_obj ~ act_simple_betweennes+total.activist.number, data = short.data.compust)
+ols3_classified_n_sibe <- lm(success_of_stated_obj ~ act_s_betw+total.activist.number, data = short.data.compust)
 re_ols3_classified_n_sibe   <- sqrt(diag( vcovHC(ols3_classified_n_sibe) ))
 
-ols3_classified_n_sibo <- lm(success_of_stated_obj ~ act_simple_bonacich+total.activist.number, data = short.data.compust)
+ols3_classified_n_sibo <- lm(success_of_stated_obj ~ act_s_bon+total.activist.number, data = short.data.compust)
 re_ols3_classified_n_sibo   <- sqrt(diag( vcovHC(ols3_classified_n_sibo) ))
 
-ols3_classified_n_spc <- lm(success_of_stated_obj ~ act_spring_closeness+total.activist.number, data = short.data.compust)
+ols3_classified_n_spc <- lm(success_of_stated_obj ~ act_sp_clos+total.activist.number, data = short.data.compust)
 re_ols3_classified_n_spc   <- sqrt(diag( vcovHC(ols3_classified_n_spc) ))
 
-ols3_classified_n_spbe <- lm(success_of_stated_obj ~ act_spring_betweennes+total.activist.number, data = short.data.compust)
+ols3_classified_n_spbe <- lm(success_of_stated_obj ~ act_sp_betw+total.activist.number, data = short.data.compust)
 re_ols3_classified_n_spbe  <- sqrt(diag( vcovHC(ols3_classified_n_spbe) ))
 
-ols3_classified_n_sbo <- lm(success_of_stated_obj ~ act_spring_bonacich+total.activist.number, data = short.data.compust)
+ols3_classified_n_sbo <- lm(success_of_stated_obj ~ act_sp_bon+total.activist.number, data = short.data.compust)
 re_ols3_classified_n_sbe   <- sqrt(diag( vcovHC(ols3_classified_n_sbo) ))
 
 
@@ -782,55 +783,55 @@ ols3_n_output = capture.output( stargazer(ols3_binar_n_sic,ols3_binar_n_sibe,ols
                                        ols3_classified_n_sic, ols3_classified_n_sibe, ols3_classified_n_sibo,
                                        ols3_classified_n_spc, ols3_classified_n_spbe,ols3_classified_n_sbo,
           type = "latex",  title = " OLS regressions with centrality measures, robust se",header = FALSE,
-          omit.stat=c("f", "ser"), font.size = "scriptsize", float.env="sidewaystable",
+          omit.stat=c("f", "ser"), font.size = "tiny", float.env="sidewaystable",
           se=list(re_ols3_binar_n_sic,re_ols3_binar_n_sibe,re_ols3_binar_n_sibo,
                   re_ols3_binar_n_spc,re_ols3_binar_n_spbe,re_ols3_binar_n_sbe,
                   re_ols3_classified_n_sic,re_ols3_classified_n_sibe,re_ols3_classified_n_sibo,
                   re_ols3_classified_n_spc,re_ols3_classified_n_spbe,re_ols3_classified_n_sbe)    ) )
 
 
-note.latex <- "\\multicolumn{12}{l} {\\parbox[t]{24cm}{ \\footnotesize \\textit{Notes:} OLS regression  of the equation $ Y = \\alpha + \\beta x + \\gamma N +controls+\\epsilon$. The regressions are run using the centrality measures to proxy for persuasiveness of an activist. Centrality is a characteristic of a node that captures the importance of the node position in a network. I use three centrality measures for this analysis. Closeness centrality shows how close each node to any other node. Betweennes centrality captures how well situated a node is in terms of the paths that it lies on. Degree centrality, is defined a the number of links incident to a node. Bonacich centrality is a degree centrality adjusted for the centrality of the neighbours in a network. The centrality measures were computed for both Simple and Spring networks. (By construction, centrality measures for Simple network are identical to the centrality measures of Number of Connections network.) After that I aggregated the centrality measures for each campaign. That is, $act\\_simple\\_closeness$ is a sum of closeness centralities of every active activist participating in a campaign, and $oth\\_simple\\_closeness$ is a sum of closeness centralities of every passive activist that invested in the company but does not participate in a campaign. $total.activist.number$ is the number of passive activist investors that hold shares of the company. 
+note.latex <- "\\multicolumn{13}{l} {\\parbox[t]{24cm}{ \\footnotesize \\textit{Notes:} OLS regression  of the equation $ Y = \\alpha + \\beta x + \\gamma N +controls+\\epsilon$. The regressions are run using the centrality measures to proxy for persuasiveness of an activist. Centrality is a characteristic of a node that captures the importance of the node position in a network. I use three centrality measures for this analysis. Closeness centrality shows how close each node to any other node. Betweennes centrality captures how well situated a node is in terms of the paths that it lies on. Degree centrality, is defined a the number of links incident to a node. Bonacich centrality is a degree centrality adjusted for the centrality of the neighbours in a network. The centrality measures were computed for both Simple and Spring networks. (By construction, centrality measures for Simple network are identical to the centrality measures of Number of Connections network.) After that I aggregated the centrality measures for each campaign. That is, $act\\_simple\\_closeness$ is a sum of closeness centralities of every active activist participating in a campaign, and $oth\\_simple\\_closeness$ is a sum of closeness centralities of every passive activist that invested in the company but does not participate in a campaign. $total.activist.number$ is the number of passive activist investors that hold shares of the company. 
 Robust standard errors in parenthesis.}} \\\\"
 ols3_n_output[grepl("Note",ols3_n_output)] <- note.latex
 cat (ols3_n_output, sep = "\n")
 
 # Two closeness measures
 
-ols3_binar_sic <- lm(won_brep_dummy ~ act_simple_closeness+oth_simple_closeness, data = short.data.compust)
+ols3_binar_sic <- lm(won_brep_dummy ~ act_s_clos+oth_s_clos, data = short.data.compust)
 re_ols3_binar_sic   <- sqrt(diag( vcovHC(ols3_binar_sic) ))
 
-ols3_binar_sibe <- lm(won_brep_dummy ~ act_simple_betweennes+oth_simple_betweennes, data = short.data.compust)
+ols3_binar_sibe <- lm(won_brep_dummy ~ act_s_betw+oth_s_betw, data = short.data.compust)
 re_ols3_binar_sibe   <- sqrt(diag( vcovHC(ols3_binar_sibe) ))
 
-ols3_binar_sibo <- lm(won_brep_dummy ~ act_simple_bonacich+oth_simple_bonacich, data = short.data.compust)
+ols3_binar_sibo <- lm(won_brep_dummy ~ act_s_bon+oth_s_bon, data = short.data.compust)
 re_ols3_binar_sibo   <- sqrt(diag( vcovHC(ols3_binar_sibo) ))
 
-ols3_binar_spc <- lm(won_brep_dummy ~ act_spring_closeness+oth_spring_closeness, data = short.data.compust)
+ols3_binar_spc <- lm(won_brep_dummy ~ act_sp_clos+oth_sp_clos, data = short.data.compust)
 re_ols3_binar_spc   <- sqrt(diag( vcovHC(ols3_binar_spc) ))
 
-ols3_binar_spbe <- lm(won_brep_dummy ~ act_spring_betweennes+oth_spring_betweennes, data = short.data.compust)
+ols3_binar_spbe <- lm(won_brep_dummy ~ act_sp_betw+oth_sp_betw, data = short.data.compust)
 re_ols3_binar_spbe  <- sqrt(diag( vcovHC(ols3_binar_spbe) ))
 
-ols3_binar_sbo <- lm(won_brep_dummy ~ act_spring_bonacich+oth_spring_bonacich, data = short.data.compust)
+ols3_binar_sbo <- lm(won_brep_dummy ~ act_sp_bon+oth_sp_bon, data = short.data.compust)
 re_ols3_binar_sbe   <- sqrt(diag( vcovHC(ols3_binar_sbo) ))
 
 
-ols3_classified_sic <- lm(success_of_stated_obj ~ act_simple_closeness+oth_simple_closeness, data = short.data.compust)
+ols3_classified_sic <- lm(success_of_stated_obj ~ act_s_clos+oth_s_clos, data = short.data.compust)
 re_ols3_classified_sic   <- sqrt(diag( vcovHC(ols3_classified_sic) ))
 
-ols3_classified_sibe <- lm(success_of_stated_obj ~ act_simple_betweennes+oth_simple_betweennes, data = short.data.compust)
+ols3_classified_sibe <- lm(success_of_stated_obj ~ act_s_betw+oth_s_betw, data = short.data.compust)
 re_ols3_classified_sibe   <- sqrt(diag( vcovHC(ols3_classified_sibe) ))
 
-ols3_classified_sibo <- lm(success_of_stated_obj ~ act_simple_bonacich+oth_simple_bonacich, data = short.data.compust)
+ols3_classified_sibo <- lm(success_of_stated_obj ~ act_s_bon+oth_s_bon, data = short.data.compust)
 re_ols3_classified_sibo   <- sqrt(diag( vcovHC(ols3_classified_sibo) ))
 
-ols3_classified_spc <- lm(success_of_stated_obj ~ act_spring_closeness+oth_spring_closeness, data = short.data.compust)
+ols3_classified_spc <- lm(success_of_stated_obj ~ act_sp_clos+oth_sp_clos, data = short.data.compust)
 re_ols3_classified_spc   <- sqrt(diag( vcovHC(ols3_classified_spc) ))
 
-ols3_classified_spbe <- lm(success_of_stated_obj ~ act_spring_betweennes+oth_spring_betweennes, data = short.data.compust)
+ols3_classified_spbe <- lm(success_of_stated_obj ~ act_sp_betw+oth_sp_betw, data = short.data.compust)
 re_ols3_classified_spbe  <- sqrt(diag( vcovHC(ols3_classified_spbe) ))
 
-ols3_classified_sbo <- lm(success_of_stated_obj ~ act_spring_bonacich+oth_spring_bonacich, data = short.data.compust)
+ols3_classified_sbo <- lm(success_of_stated_obj ~ act_sp_bon+oth_sp_bon, data = short.data.compust)
 re_ols3_classified_sbe   <- sqrt(diag( vcovHC(ols3_classified_sbo) ))
 
 
@@ -839,14 +840,14 @@ ols3_output = capture.output( stargazer(ols3_binar_sic,ols3_binar_sibe,ols3_bina
                                        ols3_classified_sic, ols3_classified_sibe, ols3_classified_sibo,
                                        ols3_classified_spc, ols3_classified_spbe,ols3_classified_sbo,
           type = "latex",  title = " OLS regressions with centrality measures, robust se",header = FALSE,
-          omit.stat=c("f", "ser"), font.size = "scriptsize", float.env="sidewaystable",
+          omit.stat=c("f", "ser"), font.size = "tiny", float.env="sidewaystable",
           se=list(re_ols3_binar_sic,re_ols3_binar_sibe,re_ols3_binar_sibo,
                   re_ols3_binar_spc,re_ols3_binar_spbe,re_ols3_binar_sbe,
                   re_ols3_classified_sic,re_ols3_classified_sibe,re_ols3_classified_sibo,
                   re_ols3_classified_spc,re_ols3_classified_spbe,re_ols3_classified_sbe)    ) )
 
 
-note.latex <- "\\multicolumn{12}{l} {\\parbox[t]{24cm}{\\footnotesize \\textit{Notes:} OLS regression  of the equation $Y = \\alpha + \\beta x + \\gamma \\bar{x} +controls+\\epsilon$.The regressions are run using the centrality measures to proxy for persuasiveness of an activist. Centrality is a characteristic of a node that captures the importance of the node position in a network. I use three centrality measures for this analysis. Closeness centrality shows how close each node to any other node. Betweennes centrality captures how well situated a node is in terms of the paths that it lies on. Degree centrality, is defined a the number of links incident to a node. Bonacich centrality is a degree centrality adjusted for the centrality of the neighbours in a network. The centrality measures were computed for both Simple and Spring networks. (By construction, centrality measures for Simple network are identical to the centrality measures of Number of Connections network.) After that I aggregated the centrality measures for each campaign. That is, $act\\_simple\\_closeness$ is a sum of closeness centralities of every active activist participating in a campaign, and $oth\\_simple\\_closeness$ is a sum of closeness centralities of every passive activist that invested in the company but does not participate in a campaign. 
+note.latex <- "\\multicolumn{13}{l} {\\parbox[t]{24cm}{\\footnotesize \\textit{Notes:} OLS regression  of the equation $Y = \\alpha + \\beta x + \\gamma \\bar{x} +controls+\\epsilon$.The regressions are run using the centrality measures to proxy for persuasiveness of an activist. Centrality is a characteristic of a node that captures the importance of the node position in a network. I use three centrality measures for this analysis. Closeness centrality shows how close each node to any other node. Betweennes centrality captures how well situated a node is in terms of the paths that it lies on. Degree centrality, is defined a the number of links incident to a node. Bonacich centrality is a degree centrality adjusted for the centrality of the neighbours in a network. The centrality measures were computed for both Simple and Spring networks. (By construction, centrality measures for Simple network are identical to the centrality measures of Number of Connections network.) After that I aggregated the centrality measures for each campaign. That is, $act\\_simple\\_closeness$ is a sum of closeness centralities of every active activist participating in a campaign, and $oth\\_simple\\_closeness$ is a sum of closeness centralities of every passive activist that invested in the company but does not participate in a campaign. 
 Robust standard errors in parenthesis. }} \\\\"
 ols3_output[grepl("Note",ols3_output)] <- note.latex
 cat (ols3_output, sep = "\n")

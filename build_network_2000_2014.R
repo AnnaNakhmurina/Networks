@@ -131,9 +131,14 @@ add_zeroes <- function(x){
 wzeroes = do.call( rbind, lapply(1:nrow(all_pair_combinations),add_zeroes ) )
 
 fund_network_wzeros = rbind(fund_network,wzeroes)
+
 save(fund_network_wzeros, file="fund_network_wzeros_1q_2015")
 
 # Summary statistics
+
+# read all funds networks 
+rm(list=ls())
+gc()
 
 fund_network1 = fund_network
 fund_network2 = fund_network
@@ -145,6 +150,15 @@ load("fund_network_4q_2015")
 fund_n <- rbind(fund_n, fund_network)
 
 # Create summary statistics regarding the fund networks
+nw_files = list.files(path = "C:/Users/anakhmur/Documents/Networks/Analysis/networks", pattern = "fund_network")
+
+fund_n <- data.frame()
+for (file in nw_files){
+  print(file)
+  load(file)
+
+fund_n <- rbind(fund_n, fund_network)
+}
 
 # delete duplicate funds
 fn <- fund_n[which(fund_n$fund1 != fund_n$fund2),]
@@ -163,6 +177,118 @@ row.names(out) <- NULL
 out <- as.data.frame( out)
 names(out) <- c("name", "min","25%","Mean", "Median", "75%", "max", "Sd")
 
-networks_summary_2015 = out
-save(networks_summary_2015, file="networks_summary_2015")
+
+# networks_summary_2015 = out
+# save(networks_summary_2015, file="networks_summary_2015")
+
+networks_summary_all = out
+save(networks_summary_all, file="networks_summary_all")
+
+
+#------------------------------------ADD CENTRALITY MEASURES TO THE FUND NETWORK DATA--------------------------------------
+
+load("13f_2000_2014_cik_dt")
+
+library(igraph)
+library(statnet)
+library(network)
+library(sna)
+
+
+# load("fund_network_wzeros_1q_2015")
+
+centrality_table = function ( fund_network ){
+  
+  simple = fund_network[c("fund1","fund2")]
+  connections_number = fund_network[c("fund1","fund2","num_con")]
+  spring = fund_network[c("fund1","fund2","s")]
+  
+  net_simple <- graph_from_data_frame(d=simple, directed=F) 
+  net_connections_number  <- graph_from_data_frame(d=connections_number, directed=F) 
+  net_spring <- graph_from_data_frame(d=spring, directed=T) 
+  
+  simple_adjnet = as_adjacency_matrix(net_simple)
+  con_adjnet = as_adjacency_matrix(net_connections_number)
+  con_spring = as_adjacency_matrix(net_spring)
+  
+  simple_am = as.matrix(simple_adjnet)
+  con_am = as.matrix(simple_adjnet)
+  spring_am = as.matrix(con_spring)
+  
+  simple_degree=degree(simple_am)
+  con_degree = degree(con_am)
+  spring_degree = degree(spring_am)
+  
+  names(simple_degree)=names(V(net_simple))
+  names(con_degree)=names(V(net_connections_number))
+  names(spring_degree)=names(V(net_spring))
+  
+  simple_between=betweenness(simple_am)
+  con_between=betweenness(con_am)
+  spring_between=betweenness(spring_am)
+  
+  names(simple_between)=names(V(net_simple))
+  names(con_between)=names(V(net_connections_number))
+  names(spring_between)=names(V(net_spring))
+  
+  simple_clos=closeness(simple_am)
+  con_clos=closeness(con_am)
+  spring_clos=closeness(spring_am)
+  
+  names(simple_clos)=names(V(net_simple))
+  names(con_clos)=names(V(net_connections_number))
+  names(spring_clos)=names(V(net_spring))
+  
+  simple_bonacich=power_centrality(net_simple, nodes = V(net_simple), loops = FALSE, exponent = 1,
+                                   rescale = FALSE, tol = 1e-07, sparse = TRUE)
+  con_bonacich=power_centrality(net_connections_number, nodes = V(net_connections_number), loops = FALSE, exponent = 1,
+                                rescale = FALSE, tol = 1e-07, sparse = TRUE)
+  spring_bonacich=power_centrality(net_spring, nodes = V(net_spring), loops = FALSE, exponent = 1,
+                                   rescale = FALSE, tol = 1e-07, sparse = TRUE)
+  
+  
+  summary = cbind(simple_degree,simple_clos,simple_between,simple_bonacich,
+                  con_degree,con_between,con_clos,con_bonacich,
+                  spring_degree,spring_between,spring_clos,spring_bonacich)
+  summary= as.data.frame(summary)
+  summary$cik = rownames(summary)
+  rownames(summary) <- NULL
+  return(summary)
+}
+
+
+nw_files = list.files(path = "C:/Users/anakhmur/Documents/Networks/Analysis/networks", pattern = "fund_network")
+file=nw_files[1]
+setwd("~/Networks/Analysis/networks")
+
+# Create corespondence table 
+
+quarter <- c("1q", "2q", "3q", "4q")
+period <- c("03-31", "06-30", "09-30", "12-31")
+corr <- data.frame(quarter, period)
+
+centrality_summary = data.frame()
+
+for (file in nw_files){
+
+q = substr(file, 14,15)
+y = substr(file, 17, 20)
+qc = corr$period[which(corr$quarter == q)]
+period = paste0(qc,"-",y)
+
+load(file)
+summary_1q = centrality_table(fund_network)
+summary_1q$period = period
+print(c(file,period))
+centrality_summary  = rbind(centrality_summary, summary_1q)
+
+}
+
+centrality_summary$date = as.Date(centrality_summary$period, "%m-%d-%Y")
+setwd("~/Networks/Analysis")
+save(centrality_summary, file="centrality_summary")
+
+cik_13f = merge(cik_13f,centrality_summary, by =c("cik", "date"))
+save(cik_13f, file="13f_2000_2014_w_centralities")
+
 
