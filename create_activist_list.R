@@ -1,6 +1,8 @@
 
 # This code performs separating the fund names string and matching of the fund names to its CIKs
 
+rm(list=ls())
+
 setwd("~/Networks/Analysis")
 library(dplyr)
 library(plyr)
@@ -160,3 +162,31 @@ clean.shark.final=unique(clean.shark.final)
 
 
 save(clean.shark.final, file="clean.shark.final")
+
+
+load("clean.shark.final")
+act_age <- read.csv("activists_age_checked.csv")
+act_age = act_age[c("activist.name", "cik", "fund_founding_year")]
+names(act_age) <- c("activist.name", "cik_checked", "fund_founding_year")
+
+clean.shark.final_age <- merge( clean.shark.final, act_age, by= "activist.name", all.x=T )
+clean.shark.final_age <- unique( clean.shark.final_age )
+camp_year <- substr( clean.shark.final_age$announce_date, 1,4)
+camp_year <- as.numeric( camp_year )
+# Compute age of each fund:
+clean.shark.final_age$age_activist <- camp_year - clean.shark.final_age$fund_founding_year
+
+# Now, change ciks of the funds in the file for checked_cik
+
+cik_list <- act_age$cik_checked
+
+subset <- clean.shark.final_age[ which( clean.shark.final_age$cik %in% cik_list), ]
+subset$cik = subset$cik_checked
+'%!in%' <- function(x,y)!('%in%'(x,y))
+non_subset <- clean.shark.final_age[ which( clean.shark.final_age$cik %!in% cik_list), ]
+
+clean.shark.final_age <- rbind( subset, non_subset)
+
+clean.shark.final = clean.shark.final_age
+
+save(clean.shark.final, file="clean.shark.final_age")

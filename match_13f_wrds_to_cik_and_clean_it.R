@@ -380,3 +380,23 @@ cik_13f = rbind(cik_13f, dt_14)
 
 save(cik_13f, file="13f_2000_2014_cik_dt")
 
+
+# ------------------- Combine the data for 2000-2014 and 2015
+rm(list=ls())
+gc()
+setwd("~/Networks/Analysis")
+
+load("13f_2000_2014_w_centr")
+load("cusip_ok.short")
+
+cusip_ok.short$sole = cusip_ok.short$votingAuthority.Sole
+cusip_ok.short$shared = cusip_ok.short$votingAuthority.Shared
+cusip_ok.short$no = cusip_ok.short$votingAuthority.None
+cusip_ok.short$date <- as.Date(cusip_ok.short$period, "%m-%d-%Y")
+cik_13f$date <- as.Date(cik_13f$date, "%m-%d-%Y")
+
+cik_13f_15 = cusip_ok.short[which(names(cusip_ok.short) %in% names(cik_13f))]
+
+cik_13f=rbind(cik_13f, cik_13f_15)
+
+save(cik_13f, file="13f_2000_2015_w_centralities")

@@ -3,24 +3,16 @@ gc()
 
 library(data.table)
 
-setwd("~/Networks/Data/13f_test")
+setwd("~/Networks/Analysis")
 temp.space <- new.env()
 cusip_all <- get(load("cusip_ok.short", temp.space), temp.space)
 rm(temp.space)
 
-setwd("~/Networks")
 
 cusip_all <- data.frame(cusip_all)
 cusip_all <- cusip_all[rowSums(is.na(cusip_all))<ncol(cusip_all),] #???
 cusip_all$period <- as.Date(cusip_all$period, "%m-%d-%Y")
 
-# SET PERIOD HERE
-cusip_subset <- cusip_all[which(cusip_all$period > "2015-2-28" & cusip_all$period < "2015-4-30"),]
-# rm(cusip_all)
-
-# SET CURRENT PERIOD!!!!! (the period of network formation )
-
-current = as.Date( "2015-03-31", "%Y-%m-%d")
 
 compustat_all <- read.csv("compustat_q_2015.csv")
 compustat=compustat_all
@@ -38,8 +30,53 @@ for (i in 1:nrow(compustat)) {
   }
 }
 
+load("clean.shark.final_age")
+full_activist_list <- unique(clean.shark.final$cik)
+full_activist_list <- full_activist_list [which(!is.na(full_activist_list))]
+
+quarters <- c("03-31", "06-30", "09-30", "12-31")
+q_to_save <- c("1q", "2q", "3q", "4q")
+beg_periods <-  c("02-28", "05-31", "08-31", "11-30")
+beg_period_leaps <- c("02-29", "05-31", "08-31", "11-30")
+end_periods <- c("04-30", "07-31", "10-31", "01-31")
+corr <- data.frame(quarters,q_to_save, beg_periods, beg_period_leaps, end_periods)
+
+leap_years <- c("2000", "2004", "2008", "2012", "2016")
+
+network_dates <- sort( unique( cusip_all$period )  )
+'%!in%' <- function(x,y)!('%in%'(x,y))
+
 compustat <- unique( compustat[c("cusip6","cusip", "datadate", "market.value.mln", "period")] ) #???
 compustat <- compustat[complete.cases(compustat),] #???
+
+
+
+for ( nw  in 1:length(network_dates) ){
+
+    nw_date <- network_dates[nw]
+  print(nw_date)
+  # SET CURRENT PERIOD!!!!! (the period of network formation )
+  current = as.Date( nw_date, "%Y-%m-%d")
+  
+  quarter <- substr(nw_date, 6, 10)
+  year <- substr(nw_date, 1, 4)
+  
+  if (year %in% leap_years){beg_p_q <- corr$beg_period_leaps[which(quarters == quarter)]}else{
+    beg_p_q <- corr$beg_periods[which(quarters == quarter)]
+  }
+  
+  end_p_q <- corr$end_periods[which(quarters == quarter)]
+  
+  beg_date <- paste0(year,"-", beg_p_q)
+  if( end_p_q == "01-31" ){
+    year_end = as.numeric(year)+1
+    end_date <- paste0(year_end,"-", end_p_q)
+  }else{end_date <- paste0(year,"-", end_p_q)}
+  
+  q_to_save = corr$q_to_save[which(corr$quarters == quarter)]
+  
+  # SET PERIOD HERE
+  cusip_subset <- cusip_all[which(cusip_all$period > beg_date & cusip_all$period < end_date ),]
 
 compustat_nearestperiod <- aggregate( compustat[c("period")], compustat[c("cusip6")], FUN=function(x) { return( max(x[x<=current]) ) } )
 compustat_nearestperiod <- compustat_nearestperiod[complete.cases(compustat_nearestperiod),]
@@ -60,9 +97,6 @@ cusip_subset$total.value.mln <- as.numeric(cusip_subset$total.value)/1000.
 cusip_subset <- cusip_subset[c("datadate","cusip6","cik","total.value.mln","value.mln","market.value.mln")]
 cusip_subset <- cusip_subset[ order(cusip_subset$cusip6), ]
 
-# activists only:
-load("clean.shark.final")
-full_activist_list <- unique(clean.shark.final$cik)
 cusip_subset <- cusip_subset[ which(cusip_subset$cik %in% full_activist_list), ]
 
 cusip6_list <- unique(cusip_subset$cusip6)
@@ -88,7 +122,7 @@ for ( i in start:end ) {
   num_funds_i <- length(unique(cusip_subset_i$cik))
   stopifnot( nrow(cusip_subset_i) == num_funds_i )
   
-  print( paste(i,cusip6_i,C,num_funds_i) )
+  print( paste(nw_date, i,cusip6_i,C,num_funds_i) )
   
   grid_funds <- expand.grid(1:num_funds_i, 1:num_funds_i)
   fund1 <- cusip_subset_i$cik[grid_funds[,1]]
@@ -124,11 +158,20 @@ for ( i in start:end ) {
   # fund_network <- rbind(fund_network,fund_network_i)
 }
 
-save(fund_network, file="fund_network_1q_2015")
-#Delete duplicate funds
-load("fund_network_2q_2015")
 
-fund_network <- fund_network[which(fund_network$fund1 != fund_network$fund2),]
+name = paste0( "fund_network_", q_to_save, "_", year )
+
+save(fund_network, file= paste0( "C:/Users/anakhmur/Documents/Networks/Analysis/networks/", name ))
+
+}
+
+
+
+# save(fund_network, file="fund_network_1q_2015")
+#Delete duplicate funds
+# load("fund_network_2q_2015")
+
+# fund_network <- fund_network[which(fund_network$fund1 != fund_network$fund2),]
 
 # Add zeros connections to the network to keep the structure of the network complete
 full_activist_list = sort( full_activist_list[!is.na(full_activist_list)] )

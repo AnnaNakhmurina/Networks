@@ -77,3 +77,34 @@ load("compustat_short_2000_2007")
 compustat= rbind(compustat,c)
 
 save(compustat, file="compustat_short_2000_2014")
+
+
+load("compustat_q_2015_w_age")
+
+compustat$leverage = (compustat$dlttq+compustat$dlcq)/compustat$seqq
+
+for (i in 1:nrow(compustat)){
+  if(!is.na(compustat$mkvaltq[i])){
+    compustat$market.value.mln[i] <- compustat$mkvalt[i]
+    
+  }else{compustat$market.value.mln[i] <- compustat$cshoq[i]*compustat$prccq[i]}
+  
+}
+
+compustat$size = compustat$market.value.mln
+compustat$mtb = compustat$market.value.mln/compustat$ceqq
+
+# If XRD (R&D) expenses are NA, substitute them with 0 
+compustat$xrdq[is.na(compustat$xrdq)] <- 0
+
+compustat$oper_profit = compustat$revtq - compustat$cogsq - (compustat$xsgaq - compustat$xrdq)
+
+compustat$roa = compustat$atq/compustat$niq
+compustat$tobins_q = (compustat$size+compustat$dlttq+compustat$dlcq +compustat$txditcq)/compustat$atq
+compustat$asset_turnover = compustat$saleq/compustat$atq
+compustat$rd_to_assets = compustat$xrdq
+compustat$period = as.Date(as.character(compustat$datadate),"%Y%m%d")
+
+save(compustat, file="compustat_short_2015_w_age")
+
+
