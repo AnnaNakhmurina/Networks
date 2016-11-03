@@ -18,16 +18,51 @@ load("compustat_short_2000_2014")
 compustat <- unique( compustat[c("cusip6","cusip", "datadate", "market.value.mln", "period")] ) #???
 compustat <- compustat[complete.cases(compustat),] #???
 
-load("clean.shark.final")
+load("clean.shark.final_age")
 full_activist_list <- unique(clean.shark.final$cik)
 full_activist_list <- full_activist_list [which(!is.na(full_activist_list))]
 
+quarters <- c("03-31", "06-30", "09-30", "12-31")
+q_to_save <- c("1q", "2q", "3q", "4q")
+beg_periods <-  c("02-28", "05-31", "08-31", "11-30")
+beg_period_leaps <- c("02-29", "05-31", "08-31", "11-30")
+end_periods <- c("04-30", "07-31", "10-31", "01-31")
+corr <- data.frame(quarters,q_to_save, beg_periods, beg_period_leaps, end_periods)
+
+leap_years <- c("2000", "2004", "2008", "2012", "2016")
+
+network_dates <- sort( unique( cusip_all$date )  )
+'%!in%' <- function(x,y)!('%in%'(x,y))
+
 # SET PERIOD HERE
-cusip_subset <- cusip_all[which(cusip_all$date > "2007-2-28" & cusip_all$date < "2007-4-30"),]
 
-# SET CURRENT PERIOD!!!!! (the period of network formation )
+for ( nw  in 1:length(network_dates) ){
+  
+  nw_date <- network_dates[nw]
+  print(nw_date)
+  # SET CURRENT PERIOD!!!!! (the period of network formation )
+  current = as.Date( nw_date, "%Y-%m-%d")
+  
+  quarter <- substr(nw_date, 6, 10)
+  year <- substr(nw_date, 1, 4)
+  
+  if (year %in% leap_years){beg_p_q <- corr$beg_period_leaps[which(quarters == quarter)]}else{
+    beg_p_q <- corr$beg_periods[which(quarters == quarter)]
+  }
+  
+  end_p_q <- corr$end_periods[which(quarters == quarter)]
+  
+  beg_date <- paste0(year,"-", beg_p_q)
+  if( end_p_q == "01-31" ){
+    year_end = as.numeric(year)+1
+    end_date <- paste0(year_end,"-", end_p_q)
+  }else{end_date <- paste0(year,"-", end_p_q)}
+  
+  q_to_save = corr$q_to_save[which(corr$quarters == quarter)]
+  
+  # SET PERIOD HERE
+  cusip_subset <- cusip_all[which(cusip_all$date > beg_date & cusip_all$date < end_date ),]
 
-current = as.Date( "2007-3-31", "%Y-%m-%d")
 
 compustat_nearestperiod <- aggregate( compustat[c("period")], compustat[c("cusip6")], FUN=function(x) { return( max(x[x<=current]) ) } )
 compustat_nearestperiod <- compustat_nearestperiod[complete.cases(compustat_nearestperiod),]
@@ -65,7 +100,7 @@ for ( i in start:end ) {
   num_funds_i <- length(unique(cusip_subset_i$cik))
   stopifnot( nrow(cusip_subset_i) == num_funds_i )
   
-  print( paste(i,cusip6_i,C,num_funds_i) )
+  print( paste(nw_date, i,cusip6_i,C,num_funds_i,num_funds_i ) )
   
   grid_funds <- expand.grid(1:num_funds_i, 1:num_funds_i)
   fund1 <- cusip_subset_i$cik[grid_funds[,1]]
@@ -101,57 +136,24 @@ for ( i in start:end ) {
   # fund_network <- rbind(fund_network,fund_network_i)
 }
 
-save(fund_network, file="fund_network_1q_2007")
 
-#-------------------------------Delete duplicate funds
-load("fund_network_2q_2015")
+name = paste0( "fund_network_", q_to_save, "_", year )
 
-fund_network <- fund_network[which(fund_network$fund1 != fund_network$fund2),]
+save(fund_network, file= paste0( "C:/Users/anakhmur/Documents/Networks/Analysis/networks/", name ))
 
-# Add zeros connections to the network to keep the structure of the network complete
-full_activist_list = sort( full_activist_list[!is.na(full_activist_list)] )
-all_pair_combinations = expand.grid(full_activist_list, full_activist_list)
-names(all_pair_combinations) <- c("fund1", "fund2" )
-# Delete duplicate funds
-all_pair_combinations <- all_pair_combinations[which(all_pair_combinations$fund1 != all_pair_combinations$fund2),]
-
-pair = a[1,]
-test = a[1:5,]
-
-add_zeroes <- function(x){
-  pair = all_pair_combinations[x,]
-  if( nrow(merge(pair,fund_network[,1:2]) )<=0 ){ 
-    out_zero <- cbind(pair, 0,0)
-    names(out_zero) = names(fund_network)
-  }else(out_zero=data.frame())
-  
-  return(out_zero)
 }
 
-wzeroes = do.call( rbind, lapply(1:nrow(all_pair_combinations),add_zeroes ) )
 
-fund_network_wzeros = rbind(fund_network,wzeroes)
 
-save(fund_network_wzeros, file="fund_network_wzeros_1q_2015")
-
-# Summary statistics
-
+#-------------------------------Summary statistics
 # read all funds networks 
 rm(list=ls())
 gc()
 
-fund_network1 = fund_network
-fund_network2 = fund_network
-
-fund_n <- rbind(fund_network1, fund_network2)
-load("fund_network_3q_2015")
-fund_n <- rbind(fund_n, fund_network)
-load("fund_network_4q_2015")
-fund_n <- rbind(fund_n, fund_network)
-
 # Create summary statistics regarding the fund networks
 nw_files = list.files(path = "C:/Users/anakhmur/Documents/Networks/Analysis/networks", pattern = "fund_network")
 
+setwd("~/Networks/Analysis/networks")
 fund_n <- data.frame()
 for (file in nw_files){
   print(file)
@@ -167,11 +169,11 @@ out <- data.frame()
 simple <- cbind( min(fn$num_con), quantile(fn$num_con, 0.25), 
                  mean(fn$num_con),median(fn$num_con), quantile(fn$num_con, 0.75),max(fn$num_con), sd(fn$num_con) )
 simple = round(simple,  digits=2)
-simple = cbind( c("number of connections"), simple)
+simple = cbind( c("# of connections fund"), simple)
 complex <- cbind( min(fn$s), quantile(fn$s, 0.25), 
                   mean(fn$s),median(fn$s), quantile(fn$s, 0.75),max(fn$s), sd(fn$s))
 complex = round(complex, digits =2)
-complex =  cbind( c("spring measure") , complex)
+complex =  cbind( c("spring fund") , complex)
 out <- rbind(complex, simple)
 row.names(out) <- NULL
 out <- as.data.frame( out)
@@ -181,20 +183,16 @@ names(out) <- c("name", "min","25%","Mean", "Median", "75%", "max", "Sd")
 # networks_summary_2015 = out
 # save(networks_summary_2015, file="networks_summary_2015")
 
-networks_summary_all = out
-save(networks_summary_all, file="networks_summary_all")
+fund_networks_summary_all = out
+save(fund_networks_summary_all, file="fund_networks_summary_all")
 
 
 #------------------------------------ADD CENTRALITY MEASURES TO THE FUND NETWORK DATA--------------------------------------
-
-load("13f_2000_2014_cik_dt")
 
 library(igraph)
 library(statnet)
 library(network)
 library(sna)
-
-# load("fund_network_wzeros_1q_2015")
 
 centrality_table = function ( fund_network ){
   
@@ -284,11 +282,33 @@ centrality_summary  = rbind(centrality_summary, summary_1q)
 }
 
 centrality_summary$date = as.Date(centrality_summary$period, "%m-%d-%Y")
+fund_centrality_summary = centrality_summary
 setwd("~/Networks/Analysis")
-save(centrality_summary, file="centrality_summary")
+save(fund_centrality_summary, file="fund_centrality_summary")
 
-load("13f_2000_2014_cik_dt")
-cik_13f = merge(cik_13f,centrality_summary, by =c("cik", "date"))
-save(cik_13f, file="13f_2000_2014_w_centr")
+# Now add centralities to the data 
 
+rm(list=ls())
+gc()
 
+library(data.table)
+setwd("~/Networks/Analysis")
+
+# load("13f_2000_2014_cik_dt")
+# load("fund_centrality_summary")
+# cik_13f = merge(cik_13f, fund_centrality_summary, by =c("cik", "date"))
+# save(cik_13f, file="13f_2000_2014_w_centr")
+# 
+
+# Add centrality data to the cusip ok database
+
+# load("cusip_ok.short")
+# 
+# drops = c("simple_degree", "simple_clos", "simple_between", 
+#                       "simple_bonacich", "con_degree", "con_between", "con_clos", 
+#                       "con_bonacich", "spring_degree", "spring_between", "spring_clos", "spring_bonacich")
+# 
+# c=cusip_ok.short[ , !(names(cusip_ok.short) %in% drops)]
+# 
+# cusip_ok.short = merge(c,fund_centrality_summary, by =c("cik", "period"))
+# save(cusip_ok.short, file="cusip_ok.short_w_centr")
