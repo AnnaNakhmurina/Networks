@@ -257,8 +257,8 @@ short.summary = rbind(short.summary, out_persuasiveness)
 
 
 netw_log <- short.data.compust[c("log_active.activist_norm_weight", "log_top5_number", "log_act_num_con", 
-                                 # "top5_perc",
-                                 "log_top5_share",
+                                 "top5_perc",
+                                 # "log_top5_share",
                                  "log_top5_size_nw_s", "log_top5_share_nw_spr",
                                  "log_top5_w_norm_s", 
                                  "log_top5_w_norm_spr", 
@@ -507,8 +507,8 @@ reg3 <- lm(success_of_stated_obj~ log_top5_number+(log_act_num_con)+log(active.a
 se3  = sqrt(diag(  cluster.vcov(reg3, short.data.compust$type1) ) )
 
 reg4 <- lm(success_of_stated_obj ~ 
-             log_top5_percent+
-             # log_top5_perc+
+             # log_top5_percent+
+             log_top5_perc+
              log(active.activist.share)+ +exit_s_board+exit_s_proxy+
              log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy
            +poison_pill+age+log(size)+leverage+mtb+roa+short_term
@@ -519,8 +519,8 @@ reg4 <- lm(success_of_stated_obj ~
 se4  = sqrt(diag(  cluster.vcov(reg4, short.data.compust$type1) ) )
 
 reg5 <- lm(success_of_stated_obj~ 
-             log_top5_percent+
-              # log_top5_perc+
+             # log_top5_percent+
+              log_top5_perc+
              (log_act_num_con) +log(active.activist.share)++exit_s_board+exit_s_proxy+
            # +log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy
            +poison_pill+age+log(size)+leverage+mtb+roa+short_term
@@ -564,7 +564,9 @@ cat (ols3_output, sep = "\n")
 #---------------Share weighteed 
 
 
-reg1 <- lm(success_of_stated_obj~ log_top5_share_nw_s+
+reg1 <- lm(success_of_stated_obj~ 
+             # log_top5_perc_nw_s+
+             log_top10_share_nw_s+
              exit_s_board+exit_s_proxy+
              log(active.activist.share)+
              # log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy+
@@ -576,7 +578,9 @@ reg1 <- lm(success_of_stated_obj~ log_top5_share_nw_s+
 # se1   <- sqrt(diag( vcovHC(reg1) ))
 se1  = sqrt(diag(  cluster.vcov(reg1, short.data.compust$type1) ) )
 
-reg2 <- lm(success_of_stated_obj~ log_top5_share_nw_spr +
+reg2 <- lm(success_of_stated_obj~ 
+             # log_top5_perc_nw_spr+
+             log_top5_share_nw_spr +
              exit_s_board+exit_s_proxy+
               log(active.activist.share)+
              # log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy+
@@ -603,14 +607,14 @@ se3  = sqrt(diag(  cluster.vcov(reg3, short.data.compust$type1) ) )
 reg4 <- lm(success_of_stated_obj~ log_top5_w_norm_spr
            +exit_s_board+exit_s_proxy+
              + log_active.activist_norm_weight+
-             # log_active.activist_norm_weight*exit_s_board+log_active.activist_norm_weight*exit_s_proxy+
+             log_active.activist_norm_weight*exit_s_board+log_active.activist_norm_weight*exit_s_proxy+
              poison_pill+age+log(size)+leverage+mtb+roa+short_term
            +log_top5_percent
            +factor(holder_type)
            + (year)
            , data = short.data.compust)
-se4   <- sqrt(diag( vcovHC(reg4) ))
-# se4  = sqrt(diag(  cluster.vcov(reg4, short.data.compust$type1) ) )
+# se4   <- sqrt(diag( vcovHC(reg4) ))
+se4  = sqrt(diag(  cluster.vcov(reg4, short.data.compust$type1) ) )
 
 
 # reg7 <- lm(success_of_stated_obj~ log_top5_w_sd_s++exit_s_board+exit_s_proxy+log_active.activist_sd_weight+log_active.activist_sd_weight*exit_s_board+log_active.activist_sd_weight*exit_s_proxy +poison_pill+age+log(size)+leverage+mtb
@@ -649,7 +653,7 @@ ols3_output = capture.output(stargazer(reg1, reg2, reg3, reg4,
                                        ),
                                        add.lines = list(c("Activist type FE ", "Yes", "Yes", "Yes", "Yes"),
                                                         c("Year FE", "Yes", "Yes", "Yes", "Yes", "Yes")),
-                                        omit = c("holder_type", "year"),
+                                        omit = c("holder_type", "year", ":"),
                                        # omit.labels = "Firm specific controls?",
                                        se=list(se1, se2,se3,se4
                                                # ,se5,se6, se7,se8 
@@ -1049,7 +1053,10 @@ reg3 <- lm(won_board_ind~ log_top5_number+(log_act_num_con)+log(active.activist.
 # se3   <- sqrt(diag( vcovHC(reg3) ))
 se3  = sqrt(diag(  cluster.vcov(reg3, short.data.compust$type1) ) )
 
-reg4 <- lm(won_board_ind~ log_top5_percent+log(active.activist.share)+ +exit_s_board+exit_s_proxy+
+reg4 <- lm(won_board_ind~ 
+             # log_top5_percent+
+             log_top5_perc+
+           log(active.activist.share)+ +exit_s_board+exit_s_proxy+
              log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy
            +poison_pill+age+log(size)+leverage+mtb+roa+short_term
            # +factor(holder_type)
@@ -1058,7 +1065,10 @@ reg4 <- lm(won_board_ind~ log_top5_percent+log(active.activist.share)+ +exit_s_b
 # se4   <- sqrt(diag(vcovHC(reg4) ))
 se4  = sqrt(diag(  cluster.vcov(reg4, short.data.compust$type1) ) )
 
-reg5 <- lm(won_board_ind~ log_top5_percent+(log_act_num_con) +log(active.activist.share)++exit_s_board+exit_s_proxy+
+reg5 <- lm(won_board_ind~ 
+             # log_top5_percent+
+             log_top5_perc+
+             (log_act_num_con) +log(active.activist.share)++exit_s_board+exit_s_proxy+
            # +log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy
            +poison_pill+age+log(size)+leverage+mtb+roa+short_term
            # +factor(holder_type)

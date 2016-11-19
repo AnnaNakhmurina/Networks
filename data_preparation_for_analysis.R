@@ -51,13 +51,13 @@ quarter <- c("1q", "2q", "3q", "4q")
 period <- c("03-31", "06-30", "09-30", "12-31")
 corr <- data.frame(quarter, period)
 
-load("top20_percent")
+load("top20_percent_old")
 top20_percent = top20_percent[which(!is.na(top20_percent))]
 
-load("top10_percent")
+load("top10_percent_old")
 top10_percent = top10_percent[which(!is.na(top10_percent))]
 
-load("top5_percent")
+load("top5_percent_old")
 top5_percent = top5_percent[which(!is.na(top5_percent))]
 
 short.data <- data.frame()
@@ -232,7 +232,7 @@ for (i in 1: length(cusip.list) ){
           top10_w_norm_spr = sum( top10n$norm_weight*top10n$s )
           
           
-          file = paste0("investor_network_top5_", quarter, "_", year)
+          file = paste0("investor_network_top5_new_", quarter, "_", year)
           load(paste0("C:/Users/anakhmur/Documents/Networks/Analysis/networks/", file))
           invn <- investor_network[which(investor_network$activist %in% active.activist.list),]
           
@@ -240,7 +240,7 @@ for (i in 1: length(cusip.list) ){
             period <- substr(ending.quarter, 6, 10)
             year <- substr(ending.quarter, 1, 4)
             quarter <- corr$quarter[which(corr$period == period)]
-            file = paste0("investor_network_top5_", quarter, "_", year)
+            file = paste0("investor_network_top5_new_", quarter, "_", year)
             load(paste0("C:/Users/anakhmur/Documents/Networks/Analysis/networks/", file))
             invn <- investor_network[which(investor_network$activist %in% active.activist.list),]
           }
@@ -260,6 +260,12 @@ for (i in 1: length(cusip.list) ){
           top5_w_sd_spr = sum( top5n$sd_weight*top5n$s )
           top5_w_norm_s = sum( top5n$norm_weight*top5n$num_con )
           top5_w_norm_spr = sum( top5n$norm_weight*top5n$s )
+          
+          top5_perc = sum(  top5n$value.mln.all )/sum(sub$value.mln.all)
+          top5_perc_nw_s <- sum( top5n$value.mln.all*top5n$num_con )/sum(sub$value.mln.all)
+          top5_perc_nw_spr <- sum( top5n$value.mln.all*top5n$s )/sum(sub$value.mln.all)
+          top5_perc_nw_s <- sum( top5n$total.value*top5n$num_con )/sum(sub$value.mln.all)
+          top5_perc_nw_spr <- sum( top5n$total.value*top5n$s )/sum(sub$value.mln.all)
           
           # Also intoduce betweenness, closeness and bonachich centrality for rach of the networks 
           # Choose to characterize the centrality of a group as a sum of members centrality
@@ -381,7 +387,9 @@ for (i in 1: length(cusip.list) ){
                                top5_s_clos_inv , top5_s_betw_inv , top5_s_bon_inv, top5_sp_clos_inv,
                                top5_sp_betw_inv,top5_sp_bon_inv,
                                top5_w_sd_s, top5_w_sd_spr, top5_w_norm_s,
-                               top5_w_norm_spr, top5_share  )
+                               top5_w_norm_spr, top5_share,
+                               top5_perc,top5_perc_nw_s , top5_perc_nw_spr,
+                               top5_perc_nw_s ,top5_perc_nw_spr )
           short.data <- rbind(short.data, output)
           
         }
@@ -433,3 +441,5 @@ short.data.compust = unique( merge(short.data.compust, reduced_campaign, by.x="c
 save(short.data.compust, file="short.data.compust")
 # 
 
+# load("short.data.compust")
+# save(short.data.compust, file="short.data.compust_old")

@@ -301,7 +301,7 @@ for (i in 1: length(cusip.list) ){
           top10_w_norm_spr = sum( top10n$norm_weight*top10n$s )
           
           
-          file = paste0("investor_network_top5_new_", quarter, "_", year)
+          file = paste0("investor_network_top5_", quarter, "_", year)
           load(paste0("C:/Users/anakhmur/Documents/Networks/Analysis/networks/", file))
           invn <- investor_network[which(investor_network$activist %in% active.activist.list),]
           
@@ -309,7 +309,7 @@ for (i in 1: length(cusip.list) ){
             period <- substr(ending.quarter, 6, 10)
             year <- substr(ending.quarter, 1, 4)
             quarter <- corr$quarter[which(corr$period == period)]
-            file = paste0("investor_network_top5_new_", quarter, "_", year)
+            file = paste0("investor_network_top5_", quarter, "_", year)
             load(paste0("C:/Users/anakhmur/Documents/Networks/Analysis/networks/", file))
             invn <- investor_network[which(investor_network$activist %in% active.activist.list),]
           }
@@ -325,6 +325,12 @@ for (i in 1: length(cusip.list) ){
           top5_share_nw_spr <- sum( top5n$value.mln.all*top5n$s )
           top5_size_nw_s <- sum( top5n$total.value*top5n$num_con )
           top5_size_nw_spr <- sum( top5n$total.value*top5n$s )
+          
+          top5_perc = sum(  top5n$value.mln.all )/sum(sub$value.mln.all)
+          top5_perc_nw_s <- sum( top5n$value.mln.all*top5n$num_con )/sum(sub$value.mln.all)
+          top5_perc_nw_spr <- sum( top5n$value.mln.all*top5n$s )/sum(sub$value.mln.all)
+          top5_perc_nw_s <- sum( top5n$total.value*top5n$num_con )/sum(sub$value.mln.all)
+          top5_perc_nw_spr <- sum( top5n$total.value*top5n$s )/sum(sub$value.mln.all)
           
           top5_w_sd_s = sum( top5n$sd_weight*top5n$num_con )
           top5_w_sd_spr = sum( top5n$sd_weight*top5n$s )
@@ -450,7 +456,9 @@ for (i in 1: length(cusip.list) ){
                                top5_s_clos_inv , top5_s_betw_inv , top5_s_bon_inv, top5_sp_clos_inv,
                                top5_sp_betw_inv,top5_sp_bon_inv,
                                top5_w_sd_s, top5_w_sd_spr, top5_w_norm_s,
-                               top5_w_norm_spr, top5_share  )
+                               top5_w_norm_spr, top5_share,
+                               top5_perc,top5_perc_nw_s , top5_perc_nw_spr,
+                               top5_perc_nw_s ,top5_perc_nw_spr )
           short.data <- rbind(short.data, output)
         }
         
@@ -464,19 +472,19 @@ for (i in 1: length(cusip.list) ){
 
 sh = unique( short.data)
 
-load("short.data.compust")
-library(plyr)
-
-as = rbind.fill(sh, short.data.compust)
-
-variable =(as$act_num_con)
-variable = log(variable)
-
-variable[which(is.nan(variable))] = NA
-variable[which(variable==Inf)] = NA
-variable[which(variable==-Inf)] = NA
-
-mean(variable, na.rm=T)
+# load("short.data.compust")
+# library(plyr)
+# 
+# as = rbind.fill(sh, short.data.compust)
+# 
+# variable =(as$act_num_con)
+# variable = log(variable)
+# 
+# variable[which(is.nan(variable))] = NA
+# variable[which(variable==Inf)] = NA
+# variable[which(variable==-Inf)] = NA
+# 
+# mean(variable, na.rm=T)
 
 save(short.data, file="short.data.classified")
 
@@ -953,6 +961,7 @@ log_top5_sp_betw[which(is.nan(log_top5_sp_betw))] = NA
 log_top5_sp_betw[which(log_top5_sp_betw==Inf | log_top5_sp_betw==-Inf )] = NA
 short.data.compust$log_top5_sp_betw = log_top5_sp_betw
 
+
 log_top5_w_sd_s = log(1+short.data.compust$top5_w_sd_s)
 log_top5_w_sd_s[which(is.nan(log_top5_w_sd_s))] = NA
 log_top5_w_sd_s[which(log_top5_w_sd_s==Inf | log_top5_w_sd_s==-Inf )] = NA
@@ -1096,10 +1105,28 @@ log_top20_sp_betw_inv[which(log_top20_sp_betw_inv==Inf | log_top20_sp_betw_inv==
 short.data.compust$log_top20_sp_betw_inv = log_top20_sp_betw_inv
 
 
+log_top5_perc_nw_s = log(1+short.data.compust$top5_perc_nw_s)
+log_top5_perc_nw_s[which(is.nan(log_top5_perc_nw_s))] = NA
+log_top5_perc_nw_s[which(log_top5_perc_nw_s==Inf | log_top5_perc_nw_s==-Inf )] = NA
+short.data.compust$log_top5_perc_nw_s = log_top5_perc_nw_s
+
+log_top5_perc_nw_spr = log(1+short.data.compust$top5_perc_nw_spr)
+log_top5_perc_nw_spr[which(is.nan(log_top5_perc_nw_spr))] = NA
+log_top5_perc_nw_spr[which(log_top5_perc_nw_spr==Inf | log_top5_perc_nw_spr==-Inf )] = NA
+short.data.compust$log_top5_perc_nw_spr = log_top5_perc_nw_spr
+
 short.data.compust$year = as.numeric( substr(short.data.compust$beginning.quarter, 1,4) )
 short.data.compust$log_size = log(short.data.compust$size)
 short.data.compust$log_active.activist.size = log( short.data.compust$active.activist.size )
 
+short.data.compust$top5_perc = short.data.compust$top5_perc/10
+log_top5_perc = log(1+short.data.compust$top5_perc)
+log_top5_perc[which(is.nan(log_top5_perc))] = NA
+log_top5_perc[which(log_top5_perc==Inf | log_top5_perc==-Inf )] = NA
+short.data.compust$log_top5_perc = log_top5_perc
+
+
+short.data.compust$log_top5_share_nw_s = scale(short.data.compust$log_top10_share_nw_s)
 
 save(short.data.compust, file="short.data.compust_2000_2015")
 
