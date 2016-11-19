@@ -159,7 +159,7 @@ for ( i in start:end ) {
 }
 
 
-name = paste0( "fund_network_", q_to_save, "_", year )
+name = paste0( "fund_network_new_", q_to_save, "_", year )
 
 save(fund_network, file= paste0( "C:/Users/anakhmur/Documents/Networks/Analysis/networks/", name ))
 

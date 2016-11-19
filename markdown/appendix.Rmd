@@ -1,0 +1,1194 @@
+---
+# title: "Activist paper preliminary output"
+# author: "Anya Nakhmurina"
+fontsize: 10pt
+linestretch: 1.5
+# date: "`r format(Sys.time(), '%d %B, %Y')`"
+bibliography: networks.bib
+output: pdf_document
+header-includes: 
+  - \usepackage{booktabs}
+  - \usepackage{dcolumn}
+  - \usepackage{caption}
+  - \usepackage{fixltx2e}
+  - \usepackage[flushleft]{threeparttable}
+  - \usepackage{amsmath}
+  - \usepackage{graphics}
+  - \usepackage{float}
+  - \usepackage{longtable}
+  - \usepackage{array}
+  - \usepackage{rotating}
+  - \usepackage{float}
+---
+
+
+\section{Appendix}
+
+
+
+
+```{r, message=F, warning=F, echo=FALSE,  fig.width=14, fig.height=6, }
+suppressWarnings(library("xtable"))
+
+library(dplyr)
+library(xtable)
+library(dplyr)
+library(plyr)
+library(ggplot2)
+library(lmtest)
+library(gridExtra)
+library(reshape)
+library(reshape2)
+library(gridExtra)
+library(Hmisc)
+library(sfsmisc)
+library(gdata)
+library(scales)
+library(xtable)
+library(tables)
+
+'%!in%' <- function(x,y)!('%in%'(x,y))
+
+setwd("~/Networks/Analysis")
+final.output <- ("C:/Users/anakhmur/Documents/Networks/Analysis/Code/markdown")
+
+#################
+# Create summary table for the merged subsample
+
+
+classified <- read.csv("classified.2015.csv")
+classified$announce_date <- as.Date(classified$announce_date, "%m/%d/%Y")
+classified.2015 <- classified[(classified$announce_date< "2016-1-1"),]
+classified.2015 <- classified.2015[, -1]
+load("shark.sub.all")
+
+# Creat summary table after merge
+
+load("short.data.compust_2000_2015")
+classified_merged = short.data.compust
+
+sum.table <- data.frame()
+
+gen.under = classified_merged[which(classified_merged$activist_objective_1 == "General undervaluation/maximize shareholder value"),]
+general.undervaluation <- cbind("General undervaluation/maximize shareholder value" , nrow(gen.under),   percent(nrow(gen.under)/nrow(classified_merged) ), "NA" ) 
+sum.table = rbind (sum.table, general.undervaluation)
+names(sum.table) = c("objective", "total.number", "percentage", "success.rate")
+
+obj.list = unique(classified_merged$activist_objective_1) 
+
+# include everything but General undervaluation in the list
+
+ol = c( "Excess cash, under-leverage, dividends/repurchases", "Equity issuance, restructure debt, recapitalization",
+       "Operational efficiency", "Lack of focus, business restructuring and spinning off", "M&A: as target (against the deal/for better terms)",
+       "M&A: as acquirer (against the deal/for better terms)", "Pursue growth strategies", "Sell company or main assets to a third party", 
+       "Take control/buyout company and/or take it private", "Rescind takeover defenses", "Oust CEO, chairman", "Board independence and fair representation",
+       "More information disclosure/potential fraud", "Excess executive compensation/pay for performance","Institute enviromental protection policy")
+
+sum.table2 = data.frame()
+
+perc <- function(x, digits = 1, format = "f", ...) {
+  paste0(formatC(100 * x, format = format, digits = digits, ...), "%")
+}
+
+for( objective in ol ){
+  
+ex.cash = classified_merged[which(classified_merged$activist_objective_1 == objective | classified_merged$activist_objective_2 == objective | classified_merged$activist_objective_3 == objective),]
+
+suc = ex.cash[which(ex.cash$success_objective_1 %in% c("Success", "Partial") & ex.cash$activist_objective_1 == objective | ex.cash$success_objective_2 %in% c("Success", "Partial") & ex.cash$activist_objective_2 == objective  | ex.cash$success_objective_3 %in% c("Success", "Partial") & ex.cash$activist_objective_3 == objective ),]
+
+total.number = nrow(ex.cash)
+success.rate <- percent(nrow(suc)/nrow(ex.cash))
+percentage <- perc( nrow(ex.cash)/nrow(classified_merged) )
+# percentage = round(percemtage, 1)
+
+output <- cbind(objective , total.number, percentage , success.rate )
+
+sum.table2 <- rbind(sum.table2, output)
+}
+
+non.gen.under = classified_merged[which(classified_merged$activist_objective_1 != "General undervaluation/maximize shareholder value"),]
+total.number_all <- nrow(non.gen.under)
+percentage_all <- percent(total.number_all/nrow(classified_merged))
+suc = non.gen.under[which(non.gen.under$success_objective_1 %in% c("Success", "Partial") | non.gen.under$success_objective_2 %in% c("Success", "Partial")  | non.gen.under$success_objective_3 %in% c("Success", "Partial")  ),]
+success_all = percent( nrow(suc)/nrow(non.gen.under))
+sum = as.data.frame ( cbind( "Total number", total.number_all, percentage_all, success_all) )
+names(sum) = names(sum.table2)
+
+sum_bear <- data.frame()
+bear = classified.2015[which(classified.2015$activist_objective_1 ==  "Public Short Position/Bear Raid"),]
+bear_short <- cbind("Public Short Position/Bear Raid" , nrow(bear), perc( nrow(bear)/nrow(classified.2015) ), "NA" ) 
+sum_bear = rbind (sum_bear, bear_short)
+names(sum_bear) = c("objective", "total.number", "percentage", "success.rate")
+
+
+sum.table2 = rbind(sum.table2, sum_bear)
+sum.table2 = rbind(sum.table2, sum)
+sum.table = sum.table2
+
+sum.table<-as.data.frame(sum.table)
+
+alt_vars <- cbind(
+  Rowgrp2 = c("Capital structure", "",
+              "Business strategy", "", "", "", "", 
+              "Sell company", "", 
+               "Governance", "", "", "", "",
+              "Other", "", ""),
+  # Rownames= rownames(sum.table), 
+  sum.table)
+
+sum.table_tex_short <- xtable(alt_vars, include.rownames=TRUE, digits=1)
+
+
+print(sum.table_tex_short,
+      only.contents=TRUE,
+      include.rownames=FALSE,
+      include.colnames = FALSE,
+      type="latex",
+
+      floating = FALSE,
+      hline.after = NULL, comment = FALSE,
+      file="C:/Users/anakhmur/Documents/Networks/Analysis/Code/markdown/sum.table_tex_short.tex")
+
+###############
+# Campaigns by type 
+
+load("shark.sub.all.2015")
+
+####################
+# Success rates by  merged data
+load("short.data.compust_2000_2015")
+
+dem = short.data.compust[which(short.data.compust$exit_stage == "demand_negot"),]
+demand_negot_count = nrow(dem)
+dem_negot_percent = percent( demand_negot_count/nrow(short.data.compust))
+dem_suc = dem[which(dem$success_objective_1 %in% c("Success", "Partial") | dem$success_objective_2 %in% c("Success", "Partial")  | dem$success_objective_3 %in% c("Success", "Partial") ),]
+dem_success_number = nrow(dem_suc)
+dem_success_percent = percent(dem_success_number/nrow(dem))
+demand_negotiations = cbind("Demand negotiations", demand_negot_count, dem_negot_percent,dem_success_number, dem_success_percent)
+
+brep = short.data.compust[which(short.data.compust$exit_stage == "board_repres"),]
+board_rep_count = nrow(brep)
+board_rep_percent = percent( board_rep_count/nrow(short.data.compust))
+brep_suc = brep[which(brep$success_objective_1 %in% c("Success", "Partial") | brep$success_objective_2 %in% c("Success", "Partial")  | brep$success_objective_3 %in% c("Success", "Partial") ),]
+brep_success_number = nrow(brep_suc)
+brep_success_percent = percent(brep_success_number/nrow(brep))
+board_representation = cbind("Board representation", board_rep_count, board_rep_percent,brep_success_number, brep_success_percent)
+
+pfight = short.data.compust[which(short.data.compust$exit_stage == "proxy_fight"),]
+pfight_count = nrow(pfight)
+pfight_percent = percent( pfight_count/nrow(short.data.compust))
+pfight_suc = pfight[which(pfight$success_objective_1 %in% c("Success", "Partial") | pfight$success_objective_2 %in% c("Success", "Partial")  | pfight$success_objective_3 %in% c("Success", "Partial") ),]
+pfight_success_number = nrow(pfight_suc)
+pfight_success_percent = percent(pfight_success_number/nrow(pfight))
+proxy_fight = cbind("Proxy fight", pfight_count, pfight_percent,pfight_success_number, pfight_success_percent)
+
+thpfight = short.data.compust[which(short.data.compust$exit_stage == "treaten_fight"),]
+thpfight_count = nrow(thpfight)
+thpfight_percent = percent( thpfight_count/nrow(short.data.compust))
+thpfight_suc = thpfight[which(thpfight$success_objective_1 %in% c("Success", "Partial") | thpfight$success_objective_2 %in% c("Success", "Partial")  | thpfight$success_objective_3 %in% c("Success", "Partial") ),]
+thpfight_success_number = nrow(thpfight_suc)
+thpfight_success_percent = percent(thpfight_success_number/nrow(thpfight))
+treaten_proxy_fight = cbind("Threaten proxy fight", thpfight_count, thpfight_percent,thpfight_success_number, thpfight_success_percent)
+
+buyc = short.data.compust[which(short.data.compust$exit_stage == "buy_company"),]
+buyc_count = nrow(buyc)
+buyc_percent = percent( buyc_count/nrow(short.data.compust))
+buyc_suc = buyc[which(buyc$success_objective_1 %in% c("Success", "Partial") | buyc$success_objective_2 %in% c("Success", "Partial")  | buyc$success_objective_3 %in% c("Success", "Partial") ),]
+buyc_success_number = nrow(buyc_suc)
+buyc_success_percent = percent(buyc_success_number/nrow(buyc))
+buy_company = cbind("Buy company", buyc_count, buyc_percent,buyc_success_number, buyc_success_percent)
+
+# success_stage_merged = rbind(demand_negotiations,board_representation,treaten_proxy_fight, proxy_fight, buy_company)
+success_stage_merged = rbind(demand_negotiations,board_representation, proxy_fight)
+success_stage_merged = as.data.frame(success_stage_merged )
+success_stage_merged_tex <- xtable(success_stage_merged ,include.rownames=TRUE, digits=2)
+
+print(success_stage_merged_tex,
+      only.contents=TRUE,
+      include.rownames=FALSE,
+      include.colnames = FALSE,
+      type="latex",
+
+      floating = FALSE,
+      hline.after = NULL, comment = FALSE,
+      file="C:/Users/anakhmur/Documents/Networks/Analysis/Code/markdown/success_stage_merged_tex.tex")
+
+
+#############################################################
+#Create summary table for final subsample
+
+load("short.data.compust_2000_2015")
+
+short.summary <- data.frame()
+
+checked_board_seats_won = short.data.compust$checked_board_seats_won
+won_board_ind = short.data.compust$won_board_ind
+success_of_stated_obj = short.data.compust$success_of_stated_obj
+sales_growth = short.data.compust$sales_growth
+oper_profit_growth = short.data.compust$oper_profit_growth
+
+campaign_outcomes <- list( success_of_stated_obj, won_board_ind)  
+names_campaign_outcomes <- c("success_of_stated_obj", "won_board_ind")  
+
+for (i in 1:length(campaign_outcomes) ){
+  variable = (campaign_outcomes)[[i]]
+  name = names_campaign_outcomes[i]
+out <- cbind( mean(variable, na.rm = TRUE),sd(variable, na.rm = TRUE), min(variable, na.rm = TRUE), quantile(variable, 0.25, na.rm = TRUE), 
+                 median(variable, na.rm = TRUE), quantile(variable, 0.75, na.rm = TRUE),max(variable, na.rm = TRUE))
+out <- round(out, 2)
+out = cbind(name,out)
+short.summary = rbind(short.summary, out)}
+
+active.activist.size=short.data.compust$active.activist.size
+
+name = "log(active.activist.share)"
+out_persuasiveness <- cbind ( mean(log(short.data.compust$active.activist.size), na.rm = TRUE),
+                              sd(log(short.data.compust$active.activist.size), na.rm = TRUE), 
+                              min(log(short.data.compust$active.activist.size), na.rm = TRUE),
+                              quantile(log(short.data.compust$active.activist.size), 0.25, na.rm = TRUE),
+                              median(log(short.data.compust$active.activist.size), na.rm = TRUE),
+                              quantile(log(short.data.compust$active.activist.size), 0.75, na.rm = TRUE),
+                              max(log(short.data.compust$active.activist.size), na.rm = TRUE)) 
+out_persuasiveness = round(out_persuasiveness, 2)
+out_persuasiveness = cbind( name,out_persuasiveness)
+names(out_persuasiveness) = names(short.summary)
+
+short.summary = rbind(short.summary, out_persuasiveness)
+
+
+netw_log <- short.data.compust[c("log_active.activist_norm_weight", "log_top5_number", "log_act_num_con", 
+                                 # "top5_perc",
+                                 "log_top5_share",
+                                 "log_top5_size_nw_s", "log_top5_share_nw_spr",
+                                 "log_top5_w_norm_s", 
+                                 "log_top5_w_norm_spr", 
+                                 "log_top5_s_clos_inv", "log_top10_s_clos_inv", "log_top5_s_betw_inv", "log_top5_sp_betw_inv")]
+
+names_netw_log <- c("log_active.activist_norm_weight", "log_top5_number", 
+                    "log_act_num_con",
+                    # "top5_perc",
+                    "log_top5_share",
+                    "log_top5_share_nw_s", "log_top5_share_nw_spr",
+                    "log_top5_w_norm_s", "log_top5_w_norm_spr", 
+                                 "log_top5_s_clos_inv", "log_top10_s_clos_inv", "log_top5_s_betw_inv", "log_top5_sp_betw_inv")
+
+for (i in 1:length(netw_log) ){
+  variable = (netw_log)[[i]]
+  variable = variable[!is.na(variable)]
+  name = names_netw_log[i]
+  # variable=log(variable)
+  # print(i)
+  if(sum(variable==-Inf) >0){
+    variable[variable==-Inf] = 0
+  }
+out <- cbind( mean(variable, na.rm = TRUE),sd(variable, na.rm = TRUE), min(variable, na.rm = TRUE), quantile(variable, 0.25, na.rm = TRUE), 
+                 median(variable, na.rm = TRUE), quantile(variable, 0.75, na.rm = TRUE),max(variable, na.rm = TRUE))
+out = round(out, 2)
+out = cbind( name, out)
+short.summary = rbind(short.summary, out)
+}
+
+
+load("investor_networks_summary_all_top5")
+names(investor_networks_summary_all) = names(short.summary) 
+short.summary = rbind(short.summary, investor_networks_summary_all)
+
+
+controls = short.data.compust[c("size")]
+
+name_controls = c("log(size)")
+
+for (i in 1:length(controls) ){
+  variable = (controls)[[i]]
+  name = name_controls[i]
+out <- cbind( mean(log(variable), na.rm = TRUE), sd(log(variable), na.rm = TRUE),
+              min(log(variable), na.rm = TRUE), 
+              quantile(log(variable), 0.25, na.rm = TRUE),
+              median(log(variable), na.rm = TRUE), 
+              quantile(log(variable), 0.75, na.rm = TRUE),
+              max(log(variable), na.rm = TRUE))
+out =round(out, 2)
+out = cbind(  name, out)
+short.summary = rbind(short.summary, out)}
+
+
+controls = short.data.compust[c("poison_pill", "age","leverage","mtb","roa", "short_term", "exit_s_board", "exit_s_proxy"  )]
+
+name_controls = names(controls)
+
+for (i in 1:length(controls) ){
+  variable = (controls)[[i]]
+  name = name_controls[i]
+out <- cbind( mean(variable, na.rm = TRUE),sd(variable, na.rm = TRUE), min(variable, na.rm = TRUE), quantile(variable, 0.25, na.rm = TRUE), 
+                 median(variable, na.rm = TRUE), quantile(variable, 0.75, na.rm = TRUE),max(variable, na.rm = TRUE))
+out =round(out, 2)
+out = cbind( name, out)
+short.summary = rbind(short.summary, out)}
+
+names(short.summary) = c("Variable", "Mean", "Median", "Sd")
+row.names(short.summary) <- NULL
+short.summary <- as.data.frame( short.summary)
+names(short.summary) <- c( "Variable", "min","25%","Mean", "Median", "75%", "max", "Sd")
+
+all_variables = short.summary$Variable
+
+vector = c ("Success of stated goals", "Won board seat(s)", "Perc. active ownership","Import. activist ownership", "Num. large investors",
+            "log(Num. activist connections)", "Perc. large ownership", "Simple con. weighted by perc.", "Spring con. weighted by perc.",
+            "Simple con. weighted by import.", "Simple con. weighted by import.", 
+            "Simple closeness centrality", "Spring closeness centrality", "Simple betweenness centrality", "Spring betweenness centrality", 
+            "Spring strength", "Simple strength",
+            "log(Market capitalization)", "Poison pill", "Firm age", "Leverage", "MTB", "ROA", "Short term objective", "Exit after board demands", 
+            "Exit after proxy fight")
+short.summary$Variable = vector
+
+
+short.summary<-as.data.frame(short.summary)
+
+alt <- cbind(
+  Rowgrp2 = c("Campaign outcome", "",
+              "Activist power", "", 
+               "Network", "", "", "", "",  "", "", "", "",  "", "", "", "",
+              "Controls", "", "", "", "",  "", "", 
+              "Campaign cost", ""),
+  # Rownames= rownames(sum.table), 
+  short.summary)
+
+
+short_summary_tex <- xtable(alt,include.rownames=TRUE, digits=2)
+
+print(short_summary_tex,
+      only.contents=TRUE,
+      include.rownames=FALSE,
+      include.colnames = FALSE,
+      type="latex",
+
+      floating = FALSE,
+      hline.after = NULL, comment = FALSE,
+      file="C:/Users/anakhmur/Documents/Networks/Analysis/Code/markdown/short_summary_tex.tex")
+
+
+#############
+# Do a correlation table
+
+
+cortable = short.data.compust[c("success_of_stated_obj",  "won_board_ind", "active.activist.share",
+                                "log_active.activist_norm_weight", "top5_number", "act_num_con", "top5_percent", 
+                                "log_top5_share_nw_s", "log_top5_share_nw_spr", "log_top5_w_norm_s", "log_top5_w_norm_spr",   
+                                "log_top5_s_clos_inv", "log_top10_s_clos_inv", "log_top5_s_betw_inv", "log_top5_sp_betw_inv",
+                                "log_size", "poison_pill", "age", "leverage", "mtb","roa", "short_term")]
+
+
+
+vec = c ("Success of stated goals", "Won board seat(s)", "Perc. active ownership","Import. activist ownership", "Num. large investors",
+            "log(Num. activist connections)", "Perc. large ownership", "Simple con. weight by perc.", "Spring con. weight by perc.",
+            "Simple con. weight by import.", "Simple con. weight by import.", 
+            "Simple closeness centrality", "Spring closeness centrality", "Simple betweenness centrality", "Spring betweenness centrality",
+            "log(Market capitalization)", "Poison pill", "Firm age", "Leverage", "MTB",
+            "ROA", "Short term objective")
+
+upper=round( cor(cortable, use="pairwise.complete.obs"), 2)
+upper[upper.tri(upper)]<-""
+
+upper<-as.data.frame(upper)
+names(upper) <- c(1:nrow(upper))
+rownames(upper) = paste0(1:nrow(upper)," ", vec)
+upper_tex <- xtable(upper,include.rownames=TRUE, digits=2)
+
+print(upper_tex,
+      only.contents=TRUE,
+      include.rownames=TRUE,
+      include.colnames = TRUE,
+      type="latex",
+
+      floating = FALSE,
+      hline.after = NULL, comment = FALSE,
+      file="C:/Users/anakhmur/Documents/Networks/Analysis/Code/markdown/upper_tex.tex")
+```
+
+\footnotesize
+\singlespacing
+
+
+\begin{center}
+  \begin{longtable}{p{2.6cm} p{8cm} p{0.4cm} p{0.4cm}p{0.4cm} }
+		\caption{\footnotesize  \textbf{Summary of events by activists' stated goals} This table provides the summary of activists' campaigns categorized by activists' stated objectives. The sample consists of 362 activist campaigns over 2000-2015. The demands were manually classified into the same categories as in Brav et al. (2008). The first column corresponds to a broad demand category. The second column narrows the activists' objective down to a more narrow category. The third colums counts a number of occurences of earch objective, the fourth column correcponds to share of such occurences and the fifth column to the percent of successful successful realizations of such objectives. Number of occurences and \% of Successes do not sum to 362 and 100\% correspondigly because each campaign can have multiple objectives.} \\
+		 \hline 
+		 \multicolumn{1}{l}{Category} & 		 \multicolumn{1}{l}{Activist Objective} & \multicolumn{1}{l}{Num. events} & \multicolumn{1}{l}{\% Sample}  & \multicolumn{1}{l}{\% Success} \\
+		\hline \hline 
+	\input{"C:/Users/anakhmur/Documents/Networks/Analysis/Code/markdown/sum.table_tex_short.tex"}
+	\hline \hline
+   \end{longtable}
+\end{center}
+
+
+
+\begin{center}
+  \begin{longtable}{p{5cm} p{2cm} p{2cm}p{2cm}p{2cm} }
+		\caption{\footnotesize \textbf{Sussess rate by stage}  This table provides the breakdown of stages at which the campaign is terminated. } \\
+		 \hline \\[0.2ex]
+\multicolumn{1}{l}{Exit after} & \multicolumn{1}{l}{Num.campaigns} & \multicolumn{1}{l}{\% Sample} & \multicolumn{1}{l}{Num. Successes} & \multicolumn{1}{l}{\% Successes} \\
+		\hline \hline 
+	\input{"C:/Users/anakhmur/Documents/Networks/Analysis/Code/markdown/success_stage_merged_tex.tex"}
+	\hline \hline
+   \end{longtable}
+\end{center}
+
+\newpage 
+\fontsize{10}{10}\selectfont
+\begin{center}\scriptsize
+  \begin{longtable}{p{2.5cm} p{4.3cm} p{1cm}p{1cm}p{1.1cm}p{1cm}p{1cm}p{1cm}p{1cm} }
+		\caption{\scriptsize  \textbf{Descriptive statistics.} This table provides summary statistics on the variables used in preliminary analysis. The variables are grouped by type. \textit{success\_of\_stated\_obj} is an indicator of fulfillment of activists' demands.  \textit{Num. large investors} is the number of investors that fall into top 5\% holding percentile and have shares in the target. \textit{Num. activist connections} is total number of connections that activist has with large investors in the target. \textit{Simple con. weighted by perc.} corresponds to the simple strength of connection weighted by large investor's ownership in the target and aggregated across large investors.\textit{Spring con. weighted by perc.} corresponds to the spring strength of connection weighted by large investor's ownership in the target and aggregated across large investors. \textit{Simple con. weighted by import.}  corresponds to the simple strength of connection weighted the importance of target to large investors and aggregated across large investors. \textit{Spring con. weighted by import.} corresponds to the spring strength of connection weighted the importance of target to large investors and aggregated across large investors. Importance is defined as $ \frac{Share - min\{Share\}}{\max\{Share\} - \min\{Share\}}$. \textit{Simple con. weighted by perc.} corresponds to the simple strength of connection weighted by large investor's ownership in the target and aggregated across large investors.
+\textit{Spring con. weighted by perc.} corresponds to the spring strength of connection weighted by large investor's ownership in the target and aggregated across large investors. \textit{Simple con. weighted by import.}  corresponds to the simple strength of connection weighted the importance of target to large investors and aggregated across large investors. \textit{Spring con. weighted by import.} corresponds to the spring strength of connection weighted the importance of target to large investors and aggregated across large investors. Importance is defined as $ \frac{Share - min\{Share\}}{\max\{Share\} - \min\{Share\}}$.   \textit{Perc. large ownership} is aggregate percentage of the target owned by large investors.  \textit{Perc. activist ownership} corresponds to the aggregate percentage owned by activists. \textit{Exit after board demands} is a dummy which is equal to one if the campaign ends with activist's demands and does not go to proxy fight. \textit{Exit after proxy fight} is an indicator that proxy fight happened over the campaign.  \textit{Poison pill} is an indicator that the firm had poison pill prior to the campaign or adopted it in response to the campaign.  \textit{Firm age} is the age of the target. \textit{Market capitalization} is market capitalization of the target at the start of campaign. \textit{Leverage} is the long-term leverage of the target firm. \textit{MTB} is market-to-book value of the target firm at the start of the campaign. \textit{ROA} is return-on-assets of the target at the start of the campaign.  \textit{Short term objective} is a dummy equal to one if activist's demands include payout of divideds, share repurchase programs or sale of the company. } \\
+		\hline \hline 
+		 \multicolumn{1}{l}{Variable type} & \multicolumn{1}{l}{Variable} & \multicolumn{1}{l}{mean}  & \multicolumn{1}{l}{sd} & \multicolumn{1}{l}{min} & \multicolumn{1}{l}{p25}& \multicolumn{1}{l}{median} & \multicolumn{1}{l}{p75} & \multicolumn{1}{l}{max}\\ \hline \\[0.2ex]
+	\input{"C:/Users/anakhmur/Documents/Networks/Analysis/Code/markdown/short_summary_tex.tex"}
+	\hline \hline
+   \end{longtable}
+\end{center}
+
+
+	 
+	 \fontsize{6}{6}\selectfont
+	 \begin{center}
+	 	\begin{sidewaystable}[p]\scriptsize
+	 		\caption{\scriptsize \textbf{Correlation table.} \textit{success\_of\_stated\_obj} is an indicator of fulfillment of activists' demands.  \textit{Num. large investors} is the number of investors that fall into top 5\% holding percentile and have shares in the target. \textit{Num. activist connections} is total number of connections that activist has with large investors in the target. \textit{Simple con. weighted by perc.} corresponds to the simple strength of connection weighted by large investor's ownership in the target and aggregated across large investors.\textit{Spring con. weighted by perc.} corresponds to the spring strength of connection weighted by large investor's ownership in the target and aggregated across large investors. \textit{Simple con. weighted by import.}  corresponds to the simple strength of connection weighted the importance of target to large investors and aggregated across large investors. \textit{Spring con. weighted by import.} corresponds to the spring strength of connection weighted the importance of target to large investors and aggregated across large investors. Importance is defined as $ \frac{Share - min\{Share\}}{\max\{Share\} - \min\{Share\}}$. \textit{Simple con. weighted by perc.} corresponds to the simple strength of connection weighted by large investor's ownership in the target and aggregated across large investors.
+	 			\textit{Spring con. weighted by perc.} corresponds to the spring strength of connection weighted by large investor's ownership in the target and aggregated across large investors. \textit{Simple con. weighted by import.}  corresponds to the simple strength of connection weighted the importance of target to large investors and aggregated across large investors. \textit{Spring con. weighted by import.} corresponds to the spring strength of connection weighted the importance of target to large investors and aggregated across large investors. Importance is defined as $ \frac{Share - min\{Share\}}{\max\{Share\} - \min\{Share\}}$.   \textit{Perc. large ownership} is aggregate percentage of the target owned by large investors.  \textit{Perc. activist ownership} corresponds to the aggregate percentage owned by activists. \textit{Exit after board demands} is a dummy which is equal to one if the campaign ends with activist's demands and does not go to proxy fight. \textit{Exit after proxy fight} is an indicator that proxy fight happened over the campaign.  \textit{Poison pill} is an indicator that the firm had poison pill prior to the campaign or adopted it in response to the campaign.  \textit{Firm age} is the age of the target. \textit{Market capitalization} is market capitalization of the target at the start of campaign. \textit{Leverage} is the long-term leverage of the target firm. \textit{MTB} is market-to-book value of the target firm at the start of the campaign. \textit{ROA} is return-on-assets of the target at the start of the campaign.  \textit{Short term objective} is a dummy equal to one if activist's demands include payout of divideds, share repurchase programs or sale of the company.}
+	 		\centering \tiny
+	\begin{tabular}{p{3.6cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}}
+	 			\hline\hline
+	 			\input{"C:/Users/anakhmur/Documents/Networks/Analysis/Code/markdown/upper_tex.tex"}
+	 			\hline\hline
+	 		\end{tabular}
+	 	\end{sidewaystable}
+	 \end{center}
+
+
+```{r star, results = 'asis', warning=FALSE, message=FALSE,echo=FALSE}
+# ----------------------------- !Regressions are done here!---------------------
+
+library(stargazer, quietly = TRUE)
+library(sandwich, quietly = TRUE)
+library(multiwayvcov, quietly= TRUE)
+library(lfe, quietly = TRUE)
+library(plm, quietly = TRUE)
+setwd("~/Networks/Analysis")
+
+# Dif-in-dif
+
+load("short.data.compust_2000_2015")
+
+#------------------ Just number and share
+
+reg1 <- lm(success_of_stated_obj ~ log_top5_number+log(active.activist.share)+ +exit_s_board+exit_s_proxy+
+             # log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy +
+             poison_pill+age+log(size)+leverage+mtb+roa+short_term+
+           # +factor(holder_type)
+           + (year)
+           , data = short.data.compust)
+# se1   <- sqrt(diag(vcovHC(reg1) ))
+se1  = sqrt(diag(  cluster.vcov(reg1, short.data.compust$type1) ) )
+
+reg2 <- lm(success_of_stated_obj~ (log_act_num_con) + log(active.activist.share)++exit_s_board+exit_s_proxy+
+             # log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy+
+             poison_pill+age+log(size)+leverage+mtb+roa+short_term+
+           # +factor(holder_type)
+           + (year)
+           , data = short.data.compust)
+# se2   <- sqrt(diag( vcovHC(reg2) ))
+se2  = sqrt(diag(  cluster.vcov(reg2, short.data.compust$type1) ) )
+
+reg3 <- lm(success_of_stated_obj~ log_top5_number+(log_act_num_con)+log(active.activist.share)+ +exit_s_board+exit_s_proxy+
+             # log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy+
+             poison_pill+age+log(size)+leverage+mtb+roa+short_term+
+           # +factor(holder_type)
+           +(year)
+           , data = short.data.compust)
+# se3   <- sqrt(diag( vcovHC(reg3) ))
+se3  = sqrt(diag(  cluster.vcov(reg3, short.data.compust$type1) ) )
+
+reg4 <- lm(success_of_stated_obj ~ 
+             log_top5_percent+
+             # log_top5_perc+
+             log(active.activist.share)+ +exit_s_board+exit_s_proxy+
+             log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy
+           +poison_pill+age+log(size)+leverage+mtb+roa+short_term
+           # +factor(holder_type)
+           # +(year)
+           , data = short.data.compust)
+# se4   <- sqrt(diag(vcovHC(reg4) ))
+se4  = sqrt(diag(  cluster.vcov(reg4, short.data.compust$type1) ) )
+
+reg5 <- lm(success_of_stated_obj~ 
+             log_top5_percent+
+              # log_top5_perc+
+             (log_act_num_con) +log(active.activist.share)++exit_s_board+exit_s_proxy+
+           # +log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy
+           +poison_pill+age+log(size)+leverage+mtb+roa+short_term
+           # +factor(holder_type)
+           +(year)
+           , data = short.data.compust)
+se5   <- sqrt(diag( vcovHC(reg5) ))
+se5  = sqrt(diag(  cluster.vcov(reg5, short.data.compust$type1) ) )
+
+
+ols3_output = capture.output(stargazer(reg1, reg2, reg3, 
+                                       reg4, reg5,
+                                       # reg6,reg7,reg8,
+                                       type = "latex",  
+                                       title = "Number of large investors and activist's success",
+                                       font.size = "tiny", float.env="table",header = FALSE,
+                                       omit.stat=c("f", "ser"),
+                                        report = "vct*",
+                                       digits = 4,
+                                       dep.var.labels   = c("Success of stated goals"),
+                                       covariate.labels = c("Num.large investors", "log(Num. activist connections)",
+                                                            "Perc. large ownership","Exit after board demands",
+                                                            "Exit after proxy fight", "Perc. activist ownership", "Poison pill", "Firm age",
+                                                             "log(Market capitalization)", "Leverage", "MTB", "ROA", "Short term objective"
+                                                            #, "Exit after board demands x Perc. activist ownership",
+                                                            # " Exit after proxy fight x Perc. activist ownership"
+                                                            ),
+                                           add.lines = list(c("Activist type FE ", "Yes", "Yes", "Yes", "Yes", "Yes"),
+                                                            c("Year FE", "Yes", "Yes", "Yes", "Yes", "Yes")),
+                                        omit = c("year", ":"),
+                                       # omit.labels = "Firm specific controls?",
+                                       se=list(se1, se2,se3
+                                                     ,se4,se5
+                                               # ,se6,se7,se8
+                                               )))
+note.latex <- "\\multicolumn{6}{l} {\\parbox[t]{13cm}{ \\textit{Notes:} OLS regression  of the equation $Campaign_outcome = Network\\_support + Activist\\_power + Activist\\_cost + Controls + e$.
+\\textit{success\\_of\\_stated\\_goals} is an indicator of fulfillment of activists' demands.  \\textit{Num. large investors} is the number of investors that fall into top 5\\% holding percentile and have shares in the target. \\textit{Num. activist connections} is total number of connections that activist has with large investors in the target.  \\textit{Perc. large ownership} is aggregate percentage of the target owned by large investors.  \\textit{Perc. activist ownership} corresponds to the aggregate percentage owned by activists. \\textit{Exit after board demands} is a dummy which is equal to one if the campaign ends with activist's demands and does not go to proxy fight. \\textit{Exit after proxy fight} is an indicator that proxy fight happened over the campaign.  \\textit{Poison pill} is an indicator that the firm had poison pill prior to the campaign or adopted it in response to the campaign.  \\textit{Firm age} is the age of the target. \\textit{Market capitalization} is market capitalization of the target at the start of campaign. \\textit{Leverage} is the long-term leverage of the target firm. \\textit{MTB} is market-to-book value of the target firm at the start of the campaign. \\textit{ROA} is return-on-assets of the target at the start of the campaign. \\textit{Short term objective} is a dummy equal to one if activist's demands include payout of divideds, share repurchase programs or sale of the company. Each regression contains year fixed effects and an activist's type (e.g. hedge fund, pension fund, etc.) fixed effects. Robust standard errors are clustered by the campaign category (capital structure, business strategy, sell company, governance or other). Table contains standard significance levels: *p<0.1; **p<0.05, ***p<0.01 }} \\\\"
+ols3_output[grepl("Note",ols3_output)] <- note.latex
+cat (ols3_output, sep = "\n")
+
+#---------------Share weighteed 
+
+
+reg1 <- lm(success_of_stated_obj~ log_top5_share_nw_s+
+             exit_s_board+exit_s_proxy+
+             log(active.activist.share)+
+             # log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy+
+             poison_pill+age+log(size)+leverage+mtb+roa+short_term
+           +log_top5_percent
+           + factor(holder_type)
+           + (year)
+           ,data = short.data.compust)
+# se1   <- sqrt(diag( vcovHC(reg1) ))
+se1  = sqrt(diag(  cluster.vcov(reg1, short.data.compust$type1) ) )
+
+reg2 <- lm(success_of_stated_obj~ log_top5_share_nw_spr +
+             exit_s_board+exit_s_proxy+
+              log(active.activist.share)+
+             # log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy+
+             poison_pill+age+log(size)+leverage+mtb+roa+short_term
+           +log_top5_percent
+           +factor(holder_type)
+             + (year)
+           ,data = short.data.compust)
+# se2   <- sqrt(diag( vcovHC(reg2) ))
+se2  = sqrt(diag(  cluster.vcov(reg2, short.data.compust$type1) ) )
+
+reg3 <- lm(success_of_stated_obj~ log_top5_w_norm_s +
+              exit_s_board+exit_s_proxy+
+             log_active.activist_norm_weight+
+             # log_active.activist_norm_weight*exit_s_board+log_active.activist_norm_weight*exit_s_proxy+
+             poison_pill+age+log(size)+leverage+mtb+roa+short_term
+           +log_top5_percent
+           +factor(holder_type)
+           # + (year)
+           , data = short.data.compust)
+# se3  <- sqrt(diag( vcovHC(reg3) ))
+se3  = sqrt(diag(  cluster.vcov(reg3, short.data.compust$type1) ) )
+
+reg4 <- lm(success_of_stated_obj~ log_top5_w_norm_spr
+           +exit_s_board+exit_s_proxy+
+             + log_active.activist_norm_weight+
+             # log_active.activist_norm_weight*exit_s_board+log_active.activist_norm_weight*exit_s_proxy+
+             poison_pill+age+log(size)+leverage+mtb+roa+short_term
+           +log_top5_percent
+           +factor(holder_type)
+           + (year)
+           , data = short.data.compust)
+se4   <- sqrt(diag( vcovHC(reg4) ))
+# se4  = sqrt(diag(  cluster.vcov(reg4, short.data.compust$type1) ) )
+
+
+# reg7 <- lm(success_of_stated_obj~ log_top5_w_sd_s++exit_s_board+exit_s_proxy+log_active.activist_sd_weight+log_active.activist_sd_weight*exit_s_board+log_active.activist_sd_weight*exit_s_proxy +poison_pill+age+log(size)+leverage+mtb
+#            # +factor(holder_type)
+#            , data = short.data.compust)
+# se7   <- sqrt(diag( vcovHC(reg7) ))
+# # se7  = sqrt(diag(  cluster.vcov(reg7, short.data.compust$type1) ) )
+# 
+# reg8 <- lm(success_of_stated_obj~ log_top5_w_sd_spr +exit_s_board+exit_s_proxy+ log_active.activist_sd_weight+log_active.activist_sd_weight*exit_s_board+log_active.activist_sd_weight*exit_s_proxy+poison_pill+age+log(size)+leverage+mtb
+#            # +factor(holder_type)
+#            , data = short.data.compust)
+# se8   <- sqrt(diag( vcovHC(reg8) ))
+# se8  = sqrt(diag(  cluster.vcov(reg8, short.data.compust$type1) ) )
+
+ols3_output = capture.output(stargazer(reg1, reg2, reg3, reg4,
+                                       # reg5,reg6, reg7,reg8,
+                                       type = "latex",
+                                       title = "Network support and activist's success",
+                                       font.size = "tiny", float.env="table",header = FALSE,
+                                       omit.stat=c("f", "ser"),
+                                        report = "vct*",
+                                       digits = 4,
+                                       dep.var.labels   = c("Success of stated goals"),
+                                       covariate.labels = c("Simple con. weighted by perc.", "Spring con. weighted by perc.",
+                                                            "Simple con. weighted by import.", "Spring con. weighted by import.",
+                                                            "Exit after board demands",
+                                                            "Exit after proxy fight", "Perc. activist ownership",
+                                                            "Import. activist ownership",
+                                                            "Poison pill", "Firm age",
+                                                             "log(Market capitalization)", "Leverage", "MTB", "ROA", "Short term objective",
+                                                            "Perc. large ownership"
+                                                            # ,"Exit after board demands x Perc. activist ownership",
+                                                            # " Exit after proxy fight x Perc. activist ownership",
+                                                            #   "Exit after board demands x Import. activist ownership",
+                                                            # " Exit after proxy fight x Import. activist ownership"
+                                       ),
+                                       add.lines = list(c("Activist type FE ", "Yes", "Yes", "Yes", "Yes"),
+                                                        c("Year FE", "Yes", "Yes", "Yes", "Yes", "Yes")),
+                                        omit = c("holder_type", "year"),
+                                       # omit.labels = "Firm specific controls?",
+                                       se=list(se1, se2,se3,se4
+                                               # ,se5,se6, se7,se8 
+                                               )))
+
+note.latex <- "\\multicolumn{5}{l} {\\parbox[t]{12cm}{ \\textit{Notes:} OLS regression  of the equation $Campaign_outcome = Network\\_support + Activist\\_power + Activist\\_cost + Controls + e$.
+\\textit{success\\_of\\_stated\\_goals} is an indicator of fulfillment of activists' demands.  \\textit{Simple con. weighted by perc.} corresponds to the simple strength of connection weighted by large investor's ownership in the target and aggregated across large investors.
+\\textit{Spring con. weighted by perc.} corresponds to the spring strength of connection weighted by large investor's ownership in the target and aggregated across large investors. \\textit{Simple con. weighted by import.}  corresponds to the simple strength of connection weighted the importance of target to large investors and aggregated across large investors. \\textit{Spring con. weighted by import.} corresponds to the spring strength of connection weighted the importance of target to large investors and aggregated across large investors. Importance is defined as $ \\frac{Share - min\\{Share\\}}{\\max\\{Share\\} - \\min\\{Share\\}}$.  \\textit{Perc. activist ownership} corresponds to the aggregate percentage owned by activists. \\textit{Exit after board demands} is a dummy which is equal to one if the campaign ends with activist's demands and does not go to proxy fight. \\textit{Exit after proxy fight} is an indicator that proxy fight happened over the campaign.  \\textit{Poison pill} is an indicator that the firm had poison pill prior to the campaign or adopted it in response to the campaign.  \\textit{Firm age} is the age of the target. \\textit{Market capitalization} is market capitalization of the target at the start of campaign. \\textit{Leverage} is the long-term leverage of the target firm. \\textit{MTB} is market-to-book value of the target firm at the start of the campaign. \\textit{ROA} is return-on-assets of the target at the start of the campaign. \\textit{Perc. large ownership} is aggregate percentage of the target owned by large investors. \\textit{Short term objective} is a dummy equal to one if activist's demands include payout of divideds, share repurchase programs or sale of the company. Each regression contains year fixed effects and an activist's type (e.g. hedge fund, pension fund, etc.) fixed effects. Robust standard errors are clustered by the campaign category (capital structure, business strategy, sell company, governance or other). Table contains standard significance levels: *p<0.1; **p<0.05, ***p<0.01  }} \\\\"
+ols3_output[grepl("Note",ols3_output)] <- note.latex
+cat (ols3_output, sep = "\n")
+# 
+
+
+
+#----------------------------------Run type 3 regressions - with centrality measures ---------------------------------
+
+
+
+# Two closeness measures
+
+
+reg1 <- lm(success_of_stated_obj ~ log_top5_s_clos_inv+top5_share_nw_s + log_active.activist_norm_weight
+           +poison_pill+age+log(size)+leverage+mtb+short_term
+           +exit_s_board+exit_s_proxy
+           + year
+           # +log_active.activist_norm_weight*exit_s_board+log_active.activist_norm_weight*exit_s_proxy
+           # +log_top5_percent
+           , data = short.data.compust)
+# se1   <- sqrt(diag( vcovHC(reg1) ))
+se1  = sqrt(diag(  cluster.vcov(reg1, short.data.compust$type1) ) )
+
+
+
+reg2 <- lm(success_of_stated_obj ~ log_top10_s_clos_inv+top5_share_nw_s +log_active.activist_norm_weight+
+                        poison_pill+age+log(size)+leverage+mtb+short_term
+                        +exit_s_board+exit_s_proxy
+           +year
+           # +log_active.activist_norm_weight*exit_s_board+log_active.activist_norm_weight*exit_s_proxy
+           # +log_top5_percent
+             , data = short.data.compust)
+# se2   <- sqrt(diag( vcovHC(reg2) ))
+se2  = sqrt(diag(  cluster.vcov(reg2, short.data.compust$type1) ) )
+
+reg3 <- lm(success_of_stated_obj ~ log_top5_s_betw_inv+top5_share_nw_s 
+           +log_active.activist_norm_weight+
+             poison_pill+age+log(size)+leverage+mtb+short_term
+           +exit_s_board+exit_s_proxy
+           +year
+           # +log_active.activist_norm_weight*exit_s_board+log_active.activist_norm_weight*exit_s_proxy
+           # +log_top5_percent
+           , data = short.data.compust)
+# se3   <- sqrt(diag( vcovHC(reg3) ))
+se3  = sqrt(diag(  cluster.vcov(reg3, short.data.compust$type1) ) )
+
+reg4 <- lm(success_of_stated_obj ~ log_top5_sp_betw_inv+top5_share_nw_s +
+             log_active.activist_norm_weight+poison_pill+age+log(size)+leverage+mtb+short_term
+             +exit_s_board+exit_s_proxy
+           +year
+           # +log_active.activist_norm_weight*exit_s_board+log_active.activist_norm_weight*exit_s_proxy
+           # +log_top5_percent
+           , data = short.data.compust)
+# se4  <- sqrt(diag( vcovHC(reg4) ))
+se4  = sqrt(diag(  cluster.vcov(reg4, short.data.compust$type1) ) )
+
+
+centr = capture.output(stargazer(reg1, reg2, reg3, reg4,
+                                 # reg5,reg6,reg7,reg8,
+                                       type = "latex",
+                                 dep.var.labels   = c("Success of stated goals"),
+                                       title = "Large investors' centrality and activist's success",
+                                       covariate.labels = c("Simple closeness centrality", "Spring closeness centrality",
+                                                            "Simple betweenness centrality", "Spring betweenness centrality",
+                                                             "Spring con. weighted by perc.",
+                                                            "Import. activist ownership",
+                                                            "Exit after board demands",
+                                                            "Exit after proxy fight", 
+                                                            "Poison pill", "Firm age",
+                                                             "log(Market capitalization)", "Leverage", "MTB", "ROA", "Short term objective"),
+                                         add.lines = list(c("Activist type FE ", "Yes", "Yes", "Yes", "Yes"),
+                                                        c("Year FE", "Yes", "Yes", "Yes", "Yes", "Yes")), 
+                                       font.size = "tiny", float.env="table",header = FALSE,
+                                       omit.stat=c("f", "ser"),
+                                 omit = c("year"), 
+                                        report = "vct*",
+                                       digits = 4,
+                                       se=list(se1, se2,se3,se4
+                                               # ,se5,se6,se7,se8 
+                                               )))
+
+note.latex <- "\\multicolumn{5}{l} {\\parbox[t]{12cm}{ \\textit{Notes:} OLS regression  of the equation $Campaign_outcome = Investor\\_importance+ Network\\_support + Activist\\_power + Activist\\_cost + Controls + e$.
+\\textit{success\\_of\\_stated\\_goals} is an indicator of fulfillment of activists' demands. \\textit{Simple closeness centrality} is an aggregate closeness centrality computed with simple network. \\textit{Spring closeness centrality} is an aggregate closeness centrality computed with spring network. \\textit{Simple betweennes centrality} is an aggregate betweennes centrality computed with simple network. \\textit{Spring betweenness centrality} is an aggregate betweennes centrality computed with spring network. 
+\\textit{Spring con. weighted by perc.} corresponds to the spring strength of connection weighted by large investor's ownership in the target and aggregated across large investors. \\\textit{Perc. activist ownership} corresponds to the aggregate percentage owned by activists. \\textit{Exit after board demands} is a dummy which is equal to one if the campaign ends with activist's demands and does not go to proxy fight. \\textit{Exit after proxy fight} is an indicator that proxy fight happened over the campaign.  \\textit{Poison pill} is an indicator that the firm had poison pill prior to the campaign or adopted it in response to the campaign.  \\textit{Firm age} is the age of the target. \\textit{Market capitalization} is market capitalization of the target at the start of campaign. \\textit{Leverage} is the long-term leverage of the target firm. \\textit{MTB} is market-to-book value of the target firm at the start of the campaign. \\textit{ROA} is return-on-assets of the target at the start of the campaign. \\textit{Perc. large ownership} is aggregate percentage of the target owned by large investors. \\textit{Short term objective} is a dummy equal to one if activist's demands include payout of divideds, share repurchase programs or sale of the company. Each regression contains year fixed effects and an activist's type (e.g. hedge fund, pension fund, etc.) fixed effects. Robust standard errors are clustered by the campaign category (capital structure, business strategy, sell company, governance or other). Table contains standard significance levels: *p<0.1; **p<0.05, ***p<0.01 }} \\\\"
+centr[grepl("Note",centr)] <- note.latex
+cat (centr, sep = "\n")
+
+
+
+load("winlose_top20_control_other")
+
+
+did_30 = felm(diff_number ~ treated+win+in_same_company+treated*win+treated*in_same_company+treated*win*in_same_company 
+              |  activist_cik+year| 0 | campaign_id , data = winlose)
+
+# se_30  = sqrt(diag(  cluster.vcov(did_30, winlose$campaign_id) ) )
+
+did_31 = felm(diff_s ~ treated+win+in_same_company+treated*win+treated*in_same_company+treated*win*in_same_company 
+              |  activist_cik+year| 0 | campaign_id , data = winlose)
+
+did_out = capture.output(stargazer(  did_30,did_31,
+                                       type = "latex",  
+                                       title = "Activist's success and connection strength",
+                                       font.size = "footnotesize",
+                                     float.env="table",header = FALSE,
+                                       omit.stat=c("f", "ser"),
+                                       report = "vct*",
+                                       digits = 4,
+                                       omit = c("activist_cik", "year"),
+                                     add.lines = list(c("Activist FE ", "Yes", "Yes", "Yes", "Yes"),
+                                                        c("Year FE", "Yes", "Yes", "Yes", "Yes", "Yes")),
+                                      covariate.labels = c("Connected to active activist", "Activist wins",
+                                                           "Target shareholder", "Connected to active activist x Target shareholder",
+                                                            "Connected to active activist x Activist wins",
+                                                            "Connected to active activist x Target shareholder",
+                                                           "Connected to active activist x Target shareholder x Activist wins"),
+                                     dep.var.labels   = c("$\\Delta(Simple)$", "$\\Delta(Spring)$"),
+                                     # omit.yes.no = T,
+                                       # omit.labels = "Firm specific controls?",
+                                       single.row = TRUE
+                                     # ,se=list(se_30, se_31 )
+                                     ))
+
+
+note.latex <- "\\multicolumn{3}{l} {\\parbox[t]{13cm}{ \\textit{Notes:} OLS regression  of the equation 	$\\Delta(Connection strength) = \\alpha + Connected\\_to\\_active\\_activist + Activist\\_wins + Target\\_shareholder + \\sum First\\_differences+ Connected\\_to\\_active\\_activist * Target\\_shareholder *  Connected\\_to\\_active\\_activist * Activist\\_wins+Controls +\\epsilon$. In the first column, 	$\\Delta(Simple)$ corresponds to the change in the simple strength (number of connections). in the second column, $\\Delta(Spring)$ corresponds to the change in the spring strength. Each regression contains year fixed effects and an activist's type (e.g. hedge fund, pension fund, etc.) fixed effects. Robust standard errors are clustered by the campaign category (capital structure, business strategy, sell company, governance or other). Table contains standard significance levels: *p<0.1; **p<0.05, ***p<0.01 }} \\\\"
+did_out[grepl("Note",did_out)] <- note.latex
+cat (did_out, sep = "\n")
+
+
+
+```
+
+\pagebreak
+
+\section{Robustness}
+
+
+```{r star2, results = 'asis', warning=FALSE, message=FALSE,echo=FALSE}
+# Regressions are done here!
+
+library(stargazer, quietly = TRUE)
+library(sandwich, quietly = TRUE)
+library(lmtest, quietly= TRUE)
+
+
+
+reg1 <- lm(success_of_stated_obj~ log_top10_share_nw_s+
+             exit_s_board+exit_s_proxy+
+             log(active.activist.share)+
+             # log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy+
+             poison_pill+age+log(size)+leverage+mtb+roa+short_term
+           +log_top10_percent
+           + factor(holder_type)
+           + (year)
+           ,data = short.data.compust)
+# se1   <- sqrt(diag( vcovHC(reg1) ))
+se1  = sqrt(diag(  cluster.vcov(reg1, short.data.compust$type1) ) )
+
+reg2 <- lm(success_of_stated_obj~ log_top10_share_nw_spr +
+             exit_s_board+exit_s_proxy+
+              log(active.activist.share)+
+             # log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy+
+             poison_pill+age+log(size)+leverage+mtb+roa+short_term
+           +log_top10_percent
+           +factor(holder_type)
+             + (year)
+           ,data = short.data.compust)
+# se2   <- sqrt(diag( vcovHC(reg2) ))
+se2  = sqrt(diag(  cluster.vcov(reg2, short.data.compust$type1) ) )
+
+reg3 <- lm(success_of_stated_obj~ log_top10_w_norm_s +
+              exit_s_board+exit_s_proxy+
+             log_active.activist_norm_weight+
+             # log_active.activist_norm_weight*exit_s_board+log_active.activist_norm_weight*exit_s_proxy+
+             poison_pill+age+log(size)+leverage+mtb+roa+short_term
+           +log_top10_percent
+           +factor(holder_type)
+           # + (year)
+           , data = short.data.compust)
+# se3  <- sqrt(diag( vcovHC(reg3) ))
+se3  = sqrt(diag(  cluster.vcov(reg3, short.data.compust$type1) ) )
+
+reg4 <- lm(success_of_stated_obj~ log_top10_w_norm_spr
+           +exit_s_board+exit_s_proxy+
+             + log_active.activist_norm_weight+
+             # log_active.activist_norm_weight*exit_s_board+log_active.activist_norm_weight*exit_s_proxy+
+             poison_pill+age+log(size)+leverage+mtb+roa+short_term
+           +log_top10_percent
+           +factor(holder_type)
+           + (year)
+           , data = short.data.compust)
+# se4   <- sqrt(diag( vcovHC(reg4) ))
+se4  = sqrt(diag(  cluster.vcov(reg4, short.data.compust$type1) ) )
+
+
+ols3_output = capture.output(stargazer(reg1, reg2, reg3, reg4,
+                                       # reg5,reg6, reg7,reg8,
+                                       type = "latex",
+                                       title = "Robustness: network support and activist's success. Large investor is an investor that belongs t o top 10 percent",
+                                       font.size = "tiny", float.env="table",header = FALSE,
+                                       omit.stat=c("f", "ser"),
+                                       dep.var.labels   = c("Success of stated goals"),
+                                        report = "vct*",
+                                       digits = 4,
+                                       covariate.labels = c("Simple con. weighted by perc.", "Spring con. weighted by perc.",
+                                                            "Simple con. weighted by import.", "Spring con. weighted by import.",
+                                                            "Exit after board demands",
+                                                            "Exit after proxy fight", "Perc. activist ownership",
+                                                            "Import. activist ownership",
+                                                            "Poison pill", "Firm age",
+                                                             "log(Market capitalization)", "Leverage", "MTB", "ROA", "Short term objective",
+                                                            "Perc. large ownership"
+                                                            # ,"Exit after board demands x Perc. activist ownership",
+                                                            # " Exit after proxy fight x Perc. activist ownership",
+                                                            #   "Exit after board demands x Import. activist ownership",
+                                                            # " Exit after proxy fight x Import. activist ownership"
+                                       ),
+                                       add.lines = list(c("Activist type FE ", "Yes", "Yes", "Yes", "Yes"),
+                                                        c("Year FE", "Yes", "Yes", "Yes", "Yes", "Yes")),
+                                        omit = c("holder_type", "year"),
+                                       # omit.labels = "Firm specific controls?",
+                                       se=list(se1, se2,se3,se4
+                                               # ,se5,se6, se7,se8 
+                                               )))
+
+note.latex <- "\\multicolumn{5}{l} {\\parbox[t]{12.5cm}{ \\textit{Notes:} OLS regression  of the equation $Campaign_outcome = Network\\_support + Activist\\_power + Activist\\_cost + Controls + e$.
+\\textit{success\\_of\\_stated\\_goals} is an indicator of fulfillment of activists' demands.  \\textit{Simple con. weighted by perc.} corresponds to the simple strength of connection weighted by large investor's ownership in the target and aggregated across large investors.
+\\textit{Spring con. weighted by perc.} corresponds to the spring strength of connection weighted by large investor's ownership in the target and aggregated across large investors. \\textit{Simple con. weighted by import.}  corresponds to the simple strength of connection weighted the importance of target to large investors and aggregated across large investors. \\textit{Spring con. weighted by import.} corresponds to the spring strength of connection weighted the importance of target to large investors and aggregated across large investors. Importance is defined as $ \\frac{Share - min\\{Share\\}}{\\max\\{Share\\} - \\min\\{Share\\}}$.  \\textit{Perc. activist ownership} corresponds to the aggregate percentage owned by activists. \\textit{Exit after board demands} is a dummy which is equal to one if the campaign ends with activist's demands and does not go to proxy fight. \\textit{Exit after proxy fight} is an indicator that proxy fight happened over the campaign.  \\textit{Poison pill} is an indicator that the firm had poison pill prior to the campaign or adopted it in response to the campaign.  \\textit{Firm age} is the age of the target. \\textit{Market capitalization} is market capitalization of the target at the start of campaign. \\textit{Leverage} is the long-term leverage of the target firm. \\textit{MTB} is market-to-book value of the target firm at the start of the campaign. \\textit{ROA} is return-on-assets of the target at the start of the campaign. \\textit{Perc. large ownership} is aggregate percentage of the target owned by large investors. \\textit{Short term objective} is a dummy equal to one if activist's demands include payout of divideds, share repurchase programs or sale of the company. Each regression contains year fixed effects and an activist's type (e.g. hedge fund, pension fund, etc.) fixed effects. Robust standard errors are clustered by the campaign category (capital structure, business strategy, sell company, governance or other). Table contains standard significance levels: *p<0.1; **p<0.05, ***p<0.01  }} \\\\"
+ols3_output[grepl("Note",ols3_output)] <- note.latex
+cat (ols3_output, sep = "\n")
+# 
+
+
+
+reg1 <- lm(success_of_stated_obj~ log_top20_share_nw_s+
+             exit_s_board+exit_s_proxy+
+             log(active.activist.share)+
+             # log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy+
+             poison_pill+age+log(size)+leverage+mtb+roa+short_term
+           +log_top20_percent
+           + factor(holder_type)
+           + (year)
+           ,data = short.data.compust)
+# se1   <- sqrt(diag( vcovHC(reg1) ))
+se1  = sqrt(diag(  cluster.vcov(reg1, short.data.compust$type1) ) )
+
+reg2 <- lm(success_of_stated_obj~ log_top20_share_nw_spr +
+             exit_s_board+exit_s_proxy+
+              log(active.activist.share)+
+             # log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy+
+             poison_pill+age+log(size)+leverage+mtb+roa+short_term
+           +log_top20_percent
+           +factor(holder_type)
+             + (year)
+           ,data = short.data.compust)
+# se2   <- sqrt(diag( vcovHC(reg2) ))
+se2  = sqrt(diag(  cluster.vcov(reg2, short.data.compust$type1) ) )
+
+reg3 <- lm(success_of_stated_obj~ log_top20_w_norm_s +
+              exit_s_board+exit_s_proxy+
+             log_active.activist_norm_weight+
+             # log_active.activist_norm_weight*exit_s_board+log_active.activist_norm_weight*exit_s_proxy+
+             poison_pill+age+log(size)+leverage+mtb+roa+short_term
+           +log_top20_percent
+           +factor(holder_type)
+           # + (year)
+           , data = short.data.compust)
+# se3  <- sqrt(diag( vcovHC(reg3) ))
+se3  = sqrt(diag(  cluster.vcov(reg3, short.data.compust$type1) ) )
+
+reg4 <- lm(success_of_stated_obj~ log_top20_w_norm_spr
+           +exit_s_board+exit_s_proxy+
+             + log_active.activist_norm_weight+
+             # log_active.activist_norm_weight*exit_s_board+log_active.activist_norm_weight*exit_s_proxy+
+             poison_pill+age+log(size)+leverage+mtb+roa+short_term
+           +log_top20_percent
+           +factor(holder_type)
+           + (year)
+           , data = short.data.compust)
+# se4   <- sqrt(diag( vcovHC(reg4) ))
+se4  = sqrt(diag(  cluster.vcov(reg4, short.data.compust$type1) ) )
+
+
+ols3_output = capture.output(stargazer(reg1, reg2, reg3, reg4,
+                                       # reg5,reg6, reg7,reg8,
+                                       type = "latex",
+                                       title = "Robustness: network support and activist's success. Large investor is an investor that belongs to top 20 percent",
+                                       dep.var.labels   = c("Success of stated goals"),
+                                       font.size = "tiny", float.env="table",header = FALSE,
+                                       omit.stat=c("f", "ser"),
+                                        report = "vct*",
+                                       digits = 4,
+                                       covariate.labels = c("Simple con. weighted by perc.", "Spring con. weighted by perc.",
+                                                            "Simple con. weighted by import.", "Spring con. weighted by import.",
+                                                            "Exit after board demands",
+                                                            "Exit after proxy fight", "Perc. activist ownership",
+                                                            "Import. activist ownership",
+                                                            "Poison pill", "Firm age",
+                                                             "log(Market capitalization)", "Leverage", "MTB", "ROA", "Short term objective",
+                                                            "Perc. large ownership"
+                                                            # ,"Exit after board demands x Perc. activist ownership",
+                                                            # " Exit after proxy fight x Perc. activist ownership",
+                                                            #   "Exit after board demands x Import. activist ownership",
+                                                            # " Exit after proxy fight x Import. activist ownership"
+                                       ),
+                                       add.lines = list(c("Activist type FE ", "Yes", "Yes", "Yes", "Yes"),
+                                                        c("Year FE", "Yes", "Yes", "Yes", "Yes", "Yes")),
+                                        omit = c("holder_type", "year"),
+                                       # omit.labels = "Firm specific controls?",
+                                       se=list(se1, se2,se3,se4
+                                               # ,se5,se6, se7,se8 
+                                               )))
+
+note.latex <- "\\multicolumn{5}{l} {\\parbox[t]{12.5cm}{ \\textit{Notes:} OLS regression  of the equation $Campaign_outcome = Network\\_support + Activist\\_power + Activist\\_cost + Controls + e$.
+\\textit{success\\_of\\_stated\\_goals} is an indicator of fulfillment of activists' demands.  \\textit{Simple con. weighted by perc.} corresponds to the simple strength of connection weighted by large investor's ownership in the target and aggregated across large investors.
+\\textit{Spring con. weighted by perc.} corresponds to the spring strength of connection weighted by large investor's ownership in the target and aggregated across large investors. \\textit{Simple con. weighted by import.}  corresponds to the simple strength of connection weighted the importance of target to large investors and aggregated across large investors. \\textit{Spring con. weighted by import.} corresponds to the spring strength of connection weighted the importance of target to large investors and aggregated across large investors. Importance is defined as $ \\frac{Share - min\\{Share\\}}{\\max\\{Share\\} - \\min\\{Share\\}}$.  \\textit{Perc. activist ownership} corresponds to the aggregate percentage owned by activists. \\textit{Exit after board demands} is a dummy which is equal to one if the campaign ends with activist's demands and does not go to proxy fight. \\textit{Exit after proxy fight} is an indicator that proxy fight happened over the campaign.  \\textit{Poison pill} is an indicator that the firm had poison pill prior to the campaign or adopted it in response to the campaign.  \\textit{Firm age} is the age of the target. \\textit{Market capitalization} is market capitalization of the target at the start of campaign. \\textit{Leverage} is the long-term leverage of the target firm. \\textit{MTB} is market-to-book value of the target firm at the start of the campaign. \\textit{ROA} is return-on-assets of the target at the start of the campaign. \\textit{Perc. large ownership} is aggregate percentage of the target owned by large investors. \\textit{Short term objective} is a dummy equal to one if activist's demands include payout of divideds, share repurchase programs or sale of the company. Each regression contains year fixed effects and an activist's type (e.g. hedge fund, pension fund, etc.) fixed effects. Robust standard errors are clustered by the campaign category (capital structure, business strategy, sell company, governance or other). Table contains standard significance levels: *p<0.1; **p<0.05, ***p<0.01  }} \\\\"
+ols3_output[grepl("Note",ols3_output)] <- note.latex
+cat (ols3_output, sep = "\n")
+# 
+
+
+reg7 <- lm(success_of_stated_obj~ log_top20_w_sd_s+exit_s_board+exit_s_proxy+log_active.activist_sd_weight+log_active.activist_sd_weight*exit_s_board+log_active.activist_sd_weight*exit_s_proxy +poison_pill+age+log(size)+leverage+mtb, data = short.data.compust)
+se7   <- sqrt(diag( vcovHC(reg7) ))
+# se7  = sqrt(diag(  cluster.vcov(reg7, short.data.compust$type1) ) )
+
+reg8 <- lm(success_of_stated_obj~ log_top20_w_sd_spr +exit_s_board+exit_s_proxy+ log_active.activist_sd_weight+log_active.activist_sd_weight*exit_s_board+log_active.activist_sd_weight*exit_s_proxy+poison_pill+age+log(size)+leverage+mtb, data = short.data.compust)
+se8   <- sqrt(diag( vcovHC(reg8) ))
+# se8  = sqrt(diag(  cluster.vcov(reg8, short.data.compust$type1) ) )
+
+ols3_output = capture.output(stargazer(reg7,reg8,
+                                       type = "latex",  
+                                       title = "Robustness check of table 6, with differently measured imporance",
+                                       font.size = "tiny", float.env="table",header = FALSE,
+                                       omit.stat=c("f", "ser"),
+                                       dep.var.labels   = c("Success of stated goals"),
+                                                                              covariate.labels = c("Simple con. weighted by perc.", "Spring con. weighted by perc.",
+                                                            "Simple con. weighted by import.", "Spring con. weighted by import.",
+                                                            "Exit after board demands",
+                                                            "Exit after proxy fight", "Perc. activist ownership",
+                                                            "Import. activist ownership",
+                                                            "Poison pill", "Firm age",
+                                                             "log(Market capitalization)", "Leverage", "MTB", "ROA", "Short term objective",
+                                                            "Perc. large ownership"
+                                                            # ,"Exit after board demands x Perc. activist ownership",
+                                                            # " Exit after proxy fight x Perc. activist ownership",
+                                                            #   "Exit after board demands x Import. activist ownership",
+                                                            # " Exit after proxy fight x Import. activist ownership"
+                                       ),
+                                       omit=c(":"),
+                                        report = "vct*",
+                                       digits = 4,
+                                       se=list(se7,se8 )))
+
+# 
+note.latex <- "\\multicolumn{3}{l} {\\parbox[t]{10cm}{ \\textit{Notes:} OLS regression  of the equation $Campaign_outcome = Network\\_support + Activist\\_power + Activist\\_cost + Controls + e$.
+\\textit{success\\_of\\_stated\\_goals} is an indicator of fulfillment of activists' demands.  \\textit{Simple con. weighted by perc.} corresponds to the simple strength of connection weighted by large investor's ownership in the target and aggregated across large investors.
+\\textit{Spring con. weighted by perc.} corresponds to the spring strength of connection weighted by large investor's ownership in the target and aggregated across large investors. \\textit{Simple con. weighted by import.}  corresponds to the simple strength of connection weighted the importance of target to large investors and aggregated across large investors. \\textit{Spring con. weighted by import.} corresponds to the spring strength of connection weighted the importance of target to large investors and aggregated across large investors. Importance is defined as $ \\frac{Share - min\\{Share\\}}{\\max\\{Share\\} - \\min\\{Share\\}}$.  \\textit{Perc. activist ownership} corresponds to the aggregate percentage owned by activists. \\textit{Exit after board demands} is a dummy which is equal to one if the campaign ends with activist's demands and does not go to proxy fight. \\textit{Exit after proxy fight} is an indicator that proxy fight happened over the campaign.  \\textit{Poison pill} is an indicator that the firm had poison pill prior to the campaign or adopted it in response to the campaign.  \\textit{Firm age} is the age of the target. \\textit{Market capitalization} is market capitalization of the target at the start of campaign. \\textit{Leverage} is the long-term leverage of the target firm. \\textit{MTB} is market-to-book value of the target firm at the start of the campaign. \\textit{ROA} is return-on-assets of the target at the start of the campaign. \\textit{Perc. large ownership} is aggregate percentage of the target owned by large investors. \\textit{Short term objective} is a dummy equal to one if activist's demands include payout of divideds, share repurchase programs or sale of the company. Each regression contains year fixed effects and an activist's type (e.g. hedge fund, pension fund, etc.) fixed effects. Robust standard errors are clustered by the campaign category (capital structure, business strategy, sell company, governance or other). Table contains standard significance levels: *p<0.1; **p<0.05, ***p<0.01  }} \\\\"
+ols3_output[grepl("Note",ols3_output)] <- note.latex
+cat (ols3_output, sep = "\n")
+# 
+
+
+reg1 <- lm(won_board_ind~ log_top5_number+log(active.activist.share)+ +exit_s_board+exit_s_proxy+
+             # log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy +
+             poison_pill+age+log(size)+leverage+mtb+roa+short_term+
+           # +factor(holder_type)
+           + (year)
+           , data = short.data.compust)
+# se1   <- sqrt(diag(vcovHC(reg1) ))
+se1  = sqrt(diag(  cluster.vcov(reg1, short.data.compust$type1) ) )
+
+reg2 <- lm(won_board_ind~ (log_act_num_con) + log(active.activist.share)++exit_s_board+exit_s_proxy+
+             # log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy+
+             poison_pill+age+log(size)+leverage+mtb+roa+short_term+
+           # +factor(holder_type)
+           + (year)
+           , data = short.data.compust)
+# se2   <- sqrt(diag( vcovHC(reg2) ))
+se2  = sqrt(diag(  cluster.vcov(reg2, short.data.compust$type1) ) )
+
+
+
+reg3 <- lm(won_board_ind~ log_top5_number+(log_act_num_con)+log(active.activist.share)+ +exit_s_board+exit_s_proxy+
+             # log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy+
+             poison_pill+age+log(size)+leverage+mtb+roa+short_term+
+           # +factor(holder_type)
+           +(year)
+           , data = short.data.compust)
+# se3   <- sqrt(diag( vcovHC(reg3) ))
+se3  = sqrt(diag(  cluster.vcov(reg3, short.data.compust$type1) ) )
+
+reg4 <- lm(won_board_ind~ log_top5_percent+log(active.activist.share)+ +exit_s_board+exit_s_proxy+
+             log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy
+           +poison_pill+age+log(size)+leverage+mtb+roa+short_term
+           # +factor(holder_type)
+           # +(year)
+           , data = short.data.compust)
+# se4   <- sqrt(diag(vcovHC(reg4) ))
+se4  = sqrt(diag(  cluster.vcov(reg4, short.data.compust$type1) ) )
+
+reg5 <- lm(won_board_ind~ log_top5_percent+(log_act_num_con) +log(active.activist.share)++exit_s_board+exit_s_proxy+
+           # +log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy
+           +poison_pill+age+log(size)+leverage+mtb+roa+short_term
+           # +factor(holder_type)
+           +(year)
+           , data = short.data.compust)
+se5   <- sqrt(diag( vcovHC(reg5) ))
+se5  = sqrt(diag(  cluster.vcov(reg5, short.data.compust$type1) ) )
+
+
+ols3_output = capture.output(stargazer(reg1, reg2, reg3, 
+                                       reg4, reg5,
+                                       # reg6,reg7,reg8,
+                                       type = "latex",  
+                                       title = "Robustness: number of large investors and activist's success",
+                                       dep.var.labels   = c("Won board seat"),
+                                       font.size = "tiny", float.env="table",header = FALSE,
+                                       omit.stat=c("f", "ser"),
+                                        report = "vct*",
+                                       digits = 4,
+                                       covariate.labels = c("Num.large investors", "log(Num. activist connections)",
+                                                            "Perc. large ownership","Exit after board demands",
+                                                            "Exit after proxy fight", "Perc. activist ownership", "Poison pill", "Firm age",
+                                                             "log(Market capitalization)", "Leverage", "MTB", "ROA", "Short term objective"
+                                                            #, "Exit after board demands x Perc. activist ownership",
+                                                            # " Exit after proxy fight x Perc. activist ownership"
+                                                            ),
+                                           add.lines = list(c("Activist type FE ", "Yes", "Yes", "Yes", "Yes", "Yes"),
+                                                            c("Year FE", "Yes", "Yes", "Yes", "Yes", "Yes")),
+                                        omit = c("year", ":"),
+                                       # omit.labels = "Firm specific controls?",
+                                       se=list(se1, se2,se3
+                                                     ,se4,se5
+                                               # ,se6,se7,se8
+                                               )))
+note.latex <- "\\multicolumn{6}{l} {\\parbox[t]{13cm}{ \\textit{Notes:} OLS regression  of the equation $Campaign_outcome = Network\\_support + Activist\\_power + Activist\\_cost + Controls + e$.
+\\textit{Won\\_board\\_seat} is an indicator that the activist won at least one board seat.   \\textit{Num. large investors} is the number of investors that fall into top 5\\% holding percentile and have shares in the target. \\textit{Num. activist connections} is total number of connections that activist has with large investors in the target.  \\textit{Perc. large ownership} is aggregate percentage of the target owned by large investors.  \\textit{Perc. activist ownership} corresponds to the aggregate percentage owned by activists. \\textit{Exit after board demands} is a dummy which is equal to one if the campaign ends with activist's demands and does not go to proxy fight. \\textit{Exit after proxy fight} is an indicator that proxy fight happened over the campaign.  \\textit{Poison pill} is an indicator that the firm had poison pill prior to the campaign or adopted it in response to the campaign.  \\textit{Firm age} is the age of the target. \\textit{Market capitalization} is market capitalization of the target at the start of campaign. \\textit{Leverage} is the long-term leverage of the target firm. \\textit{MTB} is market-to-book value of the target firm at the start of the campaign. \\textit{ROA} is return-on-assets of the target at the start of the campaign. \\textit{Short term objective} is a dummy equal to one if activist's demands include payout of divideds, share repurchase programs or sale of the company. Each regression contains year fixed effects and an activist's type (e.g. hedge fund, pension fund, etc.) fixed effects. Robust standard errors are clustered by the campaign category (capital structure, business strategy, sell company, governance or other). Table contains standard significance levels: *p<0.1; **p<0.05, ***p<0.01 }} \\\\"
+ols3_output[grepl("Note",ols3_output)] <- note.latex
+cat (ols3_output, sep = "\n")
+
+#---------------Share weighteed 
+
+
+reg1 <- lm(won_board_ind~ log_top5_share_nw_s+
+             exit_s_board+exit_s_proxy+
+             log(active.activist.share)+
+             # log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy+
+             poison_pill+age+log(size)+leverage+mtb+roa+short_term
+           +log_top5_percent
+           + factor(holder_type)
+           + (year)
+           ,data = short.data.compust)
+# se1   <- sqrt(diag( vcovHC(reg1) ))
+se1  = sqrt(diag(  cluster.vcov(reg1, short.data.compust$type1) ) )
+
+reg2 <- lm(won_board_ind~ log_top5_share_nw_spr +
+             exit_s_board+exit_s_proxy+
+              log(active.activist.share)+
+             # log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy+
+             poison_pill+age+log(size)+leverage+mtb+roa+short_term
+           +log_top5_percent
+           +factor(holder_type)
+             + (year)
+           ,data = short.data.compust)
+# se2   <- sqrt(diag( vcovHC(reg2) ))
+se2  = sqrt(diag(  cluster.vcov(reg2, short.data.compust$type1) ) )
+
+reg3 <- lm(won_board_ind~ log_top5_w_norm_s +
+              exit_s_board+exit_s_proxy+
+             log_active.activist_norm_weight+
+             # log_active.activist_norm_weight*exit_s_board+log_active.activist_norm_weight*exit_s_proxy+
+             poison_pill+age+log(size)+leverage+mtb+roa+short_term
+           +log_top5_percent
+           +factor(holder_type)
+           # + (year)
+           , data = short.data.compust)
+# se3  <- sqrt(diag( vcovHC(reg3) ))
+se3  = sqrt(diag(  cluster.vcov(reg3, short.data.compust$type1) ) )
+
+reg4 <- lm(won_board_ind~ log_top5_w_norm_spr
+           +exit_s_board+exit_s_proxy+
+             + log_active.activist_norm_weight+
+             # log_active.activist_norm_weight*exit_s_board+log_active.activist_norm_weight*exit_s_proxy+
+             poison_pill+age+log(size)+leverage+mtb+roa+short_term
+           +log_top5_percent
+           +factor(holder_type)
+           + (year)
+           , data = short.data.compust)
+# se4   <- sqrt(diag( vcovHC(reg4) ))
+se4  = sqrt(diag(  cluster.vcov(reg4, short.data.compust$type1) ) )
+
+
+ols3_output = capture.output(stargazer(reg1, reg2, reg3, reg4,
+                                       # reg5,reg6, reg7,reg8,
+                                       type = "latex",
+                                       title = "Robustness: network support and activist's success",
+                                       dep.var.labels   = c("Won board seat"),
+                                       font.size = "tiny", float.env="table",header = FALSE,
+                                       omit.stat=c("f", "ser"),
+                                        report = "vct*",
+                                       digits = 4,
+                                       covariate.labels = c("Simple con. weighted by perc.", "Spring con. weighted by perc.",
+                                                            "Simple con. weighted by import.", "Spring con. weighted by import.",
+                                                            "Exit after board demands",
+                                                            "Exit after proxy fight", "Perc. activist ownership",
+                                                            "Import. activist ownership",
+                                                            "Poison pill", "Firm age",
+                                                             "log(Market capitalization)", "Leverage", "MTB", "ROA", "Short term objective",
+                                                            "Perc. large ownership"
+                                                            # ,"Exit after board demands x Perc. activist ownership",
+                                                            # " Exit after proxy fight x Perc. activist ownership",
+                                                            #   "Exit after board demands x Import. activist ownership",
+                                                            # " Exit after proxy fight x Import. activist ownership"
+                                       ),
+                                       add.lines = list(c("Activist type FE ", "Yes", "Yes", "Yes", "Yes"),
+                                                        c("Year FE", "Yes", "Yes", "Yes", "Yes", "Yes")),
+                                        omit = c("holder_type", "year"),
+                                       # omit.labels = "Firm specific controls?",
+                                       se=list(se1, se2,se3,se4
+                                               # ,se5,se6, se7,se8 
+                                               )))
+
+note.latex <- "\\multicolumn{5}{l} {\\parbox[t]{12cm}{ \\textit{Notes:} OLS regression  of the equation $Campaign_outcome = Network\\_support + Activist\\_power + Activist\\_cost + Controls + e$.
+\\textit{Won\\_board\\_seat} is an indicator that the activist won at least one board seat.  \\textit{Simple con. weighted by perc.} corresponds to the simple strength of connection weighted by large investor's ownership in the target and aggregated across large investors.
+\\textit{Spring con. weighted by perc.} corresponds to the spring strength of connection weighted by large investor's ownership in the target and aggregated across large investors. \\textit{Simple con. weighted by import.}  corresponds to the simple strength of connection weighted the importance of target to large investors and aggregated across large investors. \\textit{Spring con. weighted by import.} corresponds to the spring strength of connection weighted the importance of target to large investors and aggregated across large investors. Importance is defined as $ \\frac{Share - min\\{Share\\}}{\\max\\{Share\\} - \\min\\{Share\\}}$.  \\textit{Perc. activist ownership} corresponds to the aggregate percentage owned by activists. \\textit{Exit after board demands} is a dummy which is equal to one if the campaign ends with activist's demands and does not go to proxy fight. \\textit{Exit after proxy fight} is an indicator that proxy fight happened over the campaign.  \\textit{Poison pill} is an indicator that the firm had poison pill prior to the campaign or adopted it in response to the campaign.  \\textit{Firm age} is the age of the target. \\textit{Market capitalization} is market capitalization of the target at the start of campaign. \\textit{Leverage} is the long-term leverage of the target firm. \\textit{MTB} is market-to-book value of the target firm at the start of the campaign. \\textit{ROA} is return-on-assets of the target at the start of the campaign. \\textit{Perc. large ownership} is aggregate percentage of the target owned by large investors. \\textit{Short term objective} is a dummy equal to one if activist's demands include payout of divideds, share repurchase programs or sale of the company. Each regression contains year fixed effects and an activist's type (e.g. hedge fund, pension fund, etc.) fixed effects. Robust standard errors are clustered by the campaign category (capital structure, business strategy, sell company, governance or other). Table contains standard significance levels: *p<0.1; **p<0.05, ***p<0.01  }} \\\\"
+ols3_output[grepl("Note",ols3_output)] <- note.latex
+cat (ols3_output, sep = "\n")
+# 
+
+
+
+
+
+```

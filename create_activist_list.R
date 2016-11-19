@@ -174,6 +174,8 @@ clean.shark.final_age <- unique( clean.shark.final_age )
 camp_year <- substr( clean.shark.final_age$announce_date, 1,4)
 camp_year <- as.numeric( camp_year )
 # Compute age of each fund:
+
+
 clean.shark.final_age$age_activist <- camp_year - clean.shark.final_age$fund_founding_year
 
 # Now, change ciks of the funds in the file for checked_cik

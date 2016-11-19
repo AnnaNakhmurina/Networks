@@ -386,8 +386,8 @@ rm(list=ls())
 gc()
 setwd("~/Networks/Analysis")
 
-load("13f_2000_2014_w_centr")
-load("cusip_ok.short")
+load("13f_2000_2014_w_both_centr")
+load("cusip_ok.short_w_both_centr")
 
 cusip_ok.short$sole = cusip_ok.short$votingAuthority.Sole
 cusip_ok.short$shared = cusip_ok.short$votingAuthority.Shared
@@ -399,4 +399,25 @@ cik_13f_15 = cusip_ok.short[which(names(cusip_ok.short) %in% names(cik_13f))]
 
 cik_13f=rbind(cik_13f, cik_13f_15)
 
-save(cik_13f, file="13f_2000_2015_w_centralities")
+save(cik_13f, file="13f_2000_2015_w_both_centr")
+
+
+#--------------------Add average importance of the firm to a top20 investor to the data
+
+rm(list=ls())
+gc()
+setwd("~/Networks/Analysis")
+load("13f_2000_2015_w_both_centr")
+
+library(data.table)
+
+# length 1510738
+
+cik_13f$share =  cik_13f$value.mln.all/cik_13f$total.value
+
+cik_13f = cik_13f[ ,sd_weight := (share -mean(share))/sd(share) , by=c("date", "cik")]
+
+cik_13f = cik_13f[ , norm_weight := (share - min(share))/(max(share) - min(share) ) , by=c("date", "cik")]
+
+save(cik_13f, file="13f_2000_2015_w_both_centr")
+

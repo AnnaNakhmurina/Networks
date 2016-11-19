@@ -137,7 +137,7 @@ for ( i in start:end ) {
 }
 
 
-name = paste0( "fund_network_", q_to_save, "_", year )
+name = paste0( "fund_network_new_", q_to_save, "_", year )
 
 save(fund_network, file= paste0( "C:/Users/anakhmur/Documents/Networks/Analysis/networks/", name ))
 
@@ -166,18 +166,18 @@ fund_n <- rbind(fund_n, fund_network)
 fn <- fund_n[which(fund_n$fund1 != fund_n$fund2),]
 
 out <- data.frame()
-simple <- cbind( min(fn$num_con), quantile(fn$num_con, 0.25), 
-                 mean(fn$num_con),median(fn$num_con), quantile(fn$num_con, 0.75),max(fn$num_con), sd(fn$num_con) )
+simple <- cbind( mean(fn$num_con), sd(fn$num_con), 
+                 min(fn$num_con),quantile(fn$num_con, 0.25), median(fn$num_con), quantile(fn$num_con, 0.75),max(fn$num_con) )
 simple = round(simple,  digits=2)
 simple = cbind( c("# of connections fund"), simple)
-complex <- cbind( min(fn$s), quantile(fn$s, 0.25), 
-                  mean(fn$s),median(fn$s), quantile(fn$s, 0.75),max(fn$s), sd(fn$s))
+complex <- cbind( mean(fn$s), sd(fn$s), 
+                 min(fn$s),quantile(fn$s, 0.25), median(fn$s), quantile(fn$s, 0.75),max(fn$s) )
 complex = round(complex, digits =2)
 complex =  cbind( c("spring fund") , complex)
 out <- rbind(complex, simple)
 row.names(out) <- NULL
 out <- as.data.frame( out)
-names(out) <- c("name", "min","25%","Mean", "Median", "75%", "max", "Sd")
+names(out) <- c("name", "mean","sd%","min", "25%", "median%", "75%", "max")
 
 
 # networks_summary_2015 = out
@@ -312,3 +312,19 @@ setwd("~/Networks/Analysis")
 # 
 # cusip_ok.short = merge(c,fund_centrality_summary, by =c("cik", "period"))
 # save(cusip_ok.short, file="cusip_ok.short_w_centr")
+
+
+load("cusip_ok.short_w_centr")
+library(data.table)
+
+# length 1510738
+
+cusip_ok.short = as.data.table(cusip_ok.short)
+
+cusip_ok.short$share =  cusip_ok.short$value.mln.all/cusip_ok.short$total.value
+
+cusip_ok.short = cusip_ok.short[ ,sd_weight := (share -mean(share))/sd(share) , by=c("date", "cik")]
+
+cusip_ok.short = cusip_ok.short[ , norm_weight := (share - min(share))/(max(share) - min(share) ) , by=c("date", "cik")]
+
+save(cusip_ok.short, file="cusip_ok.short_w_centr")

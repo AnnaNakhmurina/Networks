@@ -26,6 +26,8 @@ header-includes:
 
 The research question of this paper is to learn whether there are any network effects among the 'active' and 'passive' activist investors over the span of the activists' campaign. This document contains a summary of my progress with this project. Research approach section is basically copied from my original proposal to remind the reader about my research approach. 
 
+
+
 ```{r, message=F, warning=F, echo=FALSE,  fig.width=14, fig.height=6, }
 suppressWarnings(library("xtable"))
 
@@ -540,16 +542,6 @@ print(upper_tex,
    \end{longtable}
 \end{center}
 
-\begin{center}
-  \begin{longtable}{p{5cm} p{2cm} p{2cm}p{2cm}p{2cm} }
-		\caption{\footnotesize \textbf{Sussess rate by stage - the whole 2015.} This table provides the breakdown of stages at which the campaign is terminated. The table is based on the sample of all campaigns that took place in 2015. The data on campaign avalability comes from SharkWatch database. Campaigns were manually classified. } \\
-		 \hline \\[0.2ex]
-\multicolumn{1}{l}{Exit after} & \multicolumn{1}{l}{Num. of campaigns} & \multicolumn{1}{l}{\% of Sample} & \multicolumn{1}{l}{Number of Successes} & \multicolumn{1}{l}{\% of Successes} \\
-		\hline \hline 
-	\input{"C:/Users/anakhmur/Documents/Networks/Analysis/Code/markdown/success_stage_all_tex.tex"}
-	\hline \hline
-   \end{longtable}
-\end{center}
 
 \begin{center}
   \begin{longtable}{p{5cm} p{2cm} p{2cm}p{2cm}p{2cm} }
@@ -595,59 +587,78 @@ print(upper_tex,
 
 library(stargazer, quietly = TRUE)
 library(sandwich, quietly = TRUE)
-library(xtable, quietly = TRUE)
-
+library(multiwayvcov, quietly= TRUE)
+library(lfe, quietly = TRUE)
 setwd("~/Networks/Analysis")
 
 load("short.data.compust_2000_2015")
 
 log1b_1 <- glm(won_board_ind ~(total.activist.number), data = short.data.compust, family = "binomial")
-re_log1b_1   <- sqrt(diag( vcovHC(log1b_1)))
+# re_log1b_1   <- sqrt(diag( vcovHC(log1b_1)))
+re_log1b_1  = sqrt(diag(  cluster.vcov(log1b_1, short.data.compust$type1) ) )
 
 log1b_2 <- glm(won_board_ind ~(top20_number), data = short.data.compust, family = "binomial")
-re_log1b_2   <- sqrt(diag( vcovHC(log1b_2)))
+# re_log1b_2   <- sqrt(diag( vcovHC(log1b_2)))
+re_log1b_2  = sqrt(diag(  cluster.vcov(log1b_2, short.data.compust$type1) ) )
 
-log1b_3 <- glm(won_board_ind ~(total.activist.number)+log(active.activist.size), data = short.data.compust, family = "binomial")
-re_log1b_3   <- sqrt(diag( vcovHC(log1b_3)))
+log1b_3 <- glm(won_board_ind ~(total.activist.number)+log(active.activist.share), data = short.data.compust, family = "binomial")
+# re_log1b_3   <- sqrt(diag( vcovHC(log1b_3)))
+re_log1b_3  = sqrt(diag(  cluster.vcov(log1b_3, short.data.compust$type1) ) )
 
-log1b_4 <- glm(won_board_ind ~(top20_number)+log(active.activist.size), data = short.data.compust, family = "binomial")
-re_log1b_4   <- sqrt(diag( vcovHC(log1b_4)))
+log1b_4 <- glm(won_board_ind ~(top20_number)+log(active.activist.share), data = short.data.compust, family = "binomial")
+# re_log1b_4   <- sqrt(diag( vcovHC(log1b_4)))
+re_log1b_4  = sqrt(diag(  cluster.vcov(log1b_4, short.data.compust$type1) ) )
 
 log1b_5 <- glm(won_board_ind ~(total.activist.number)+exit_s_board+exit_s_proxy, data = short.data.compust, family = "binomial")
-re_log1b_5  <- sqrt(diag( vcovHC(log1b_5)))
+# re_log1b_5  <- sqrt(diag( vcovHC(log1b_5)))
+re_log1b_5  = sqrt(diag(  cluster.vcov(log1b_5, short.data.compust$type1) ) )
 
-log1b_6 <- glm(won_board_ind ~ (total.activist.number)+exit_s_board+exit_s_proxy+log(active.activist.size)+log(active.activist.size)*exit_s_board+log(active.activist.size)*exit_s_proxy, data = short.data.compust, family = "binomial")
-re_log1b_6    <- sqrt(diag( vcovHC(log1b_6)))
+log1b_6 <- glm(won_board_ind ~ (total.activist.number)+exit_s_board+exit_s_proxy+log(active.activist.share)+log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy, data = short.data.compust, family = "binomial")
+# re_log1b_6    <- sqrt(diag( vcovHC(log1b_6)))
+re_log1b_6  = sqrt(diag(  cluster.vcov(log1b_6, short.data.compust$type1) ) )
 
 log1b_7 <- glm(won_board_ind ~ (top20_number)+exit_s_board+exit_s_proxy, data = short.data.compust, family = "binomial")
-re_log1b_7    <- sqrt(diag(vcovHC(log1b_7) ))
+# re_log1b_7    <- sqrt(diag(vcovHC(log1b_7) ))
+re_log1b_7  = sqrt(diag(  cluster.vcov(log1b_7, short.data.compust$type1) ) )
 
-log1b_8 <- glm(won_board_ind ~ log(active.activist.size)+(top20_number)+exit_s_board+exit_s_proxy, data = short.data.compust, family = "binomial")
-re_log1b_8    <- sqrt(diag(vcovHC(log1b_8) ))
+log1b_8 <- glm(won_board_ind ~ log(active.activist.share)+(top20_number)+exit_s_board+exit_s_proxy, data = short.data.compust, family = "binomial")
+# re_log1b_8    <- sqrt(diag(vcovHC(log1b_8) ))
+re_log1b_8  = sqrt(diag(  cluster.vcov(log1b_8, short.data.compust$type1) ) )
 
 log1s_1 <- glm(success_of_stated_obj ~(total.activist.number), data = short.data.compust, family = "binomial")
-re_log1s_1  <- sqrt(diag( vcovHC(log1s_1)))
+# re_log1s_1  <- sqrt(diag( vcovHC(log1s_1)))
+re_log1s_1  = sqrt(diag(  cluster.vcov(log1s_1, short.data.compust$type1) ) )
+
 
 log1s_2 <- glm(success_of_stated_obj ~(top20_number), data = short.data.compust, family = "binomial")
-re_log1s_2  <- sqrt(diag( vcovHC(log1s_2)))
+# re_log1s_2  <- sqrt(diag( vcovHC(log1s_2)))
+re_log1s_2  = sqrt(diag(  cluster.vcov(log1s_2, short.data.compust$type1) ) )
 
-log1s_3 <- glm(success_of_stated_obj ~(total.activist.number)+log(active.activist.size), data = short.data.compust, family = "binomial")
-re_log1s_3  <- sqrt(diag( vcovHC(log1s_3)))
 
-log1s_4 <- glm(success_of_stated_obj ~(investor.number)+log(active.activist.size), data = short.data.compust, family = "binomial")
-re_log1s_4  <- sqrt(diag( vcovHC(log1s_4)))
+log1s_3 <- glm(success_of_stated_obj ~(total.activist.number)+log(active.activist.share), data = short.data.compust, family = "binomial")
+# re_log1s_3  <- sqrt(diag( vcovHC(log1s_3)))
+re_log1s_3  = sqrt(diag(  cluster.vcov(log1s_3, short.data.compust$type1) ) )
+
+log1s_4 <- glm(success_of_stated_obj ~(top20_number)+log(active.activist.share), data = short.data.compust, family = "binomial")
+# re_log1s_4  <- sqrt(diag( vcovHC(log1s_4)))
+re_log1s_4  = sqrt(diag(  cluster.vcov(log1s_4, short.data.compust$type1) ) )
 
 log1s_5 <- glm(success_of_stated_obj ~(total.activist.number)+exit_s_board+exit_s_proxy, data = short.data.compust, family = "binomial")
-re_log1s_5   <- sqrt(diag( vcovHC(log1s_5)))
+# re_log1s_5   <- sqrt(diag( vcovHC(log1s_5)))
+re_log1s_5  = sqrt(diag(  cluster.vcov(log1s_5, short.data.compust$type1) ) )
 
-log1s_6 <- glm(success_of_stated_obj ~ (total.activist.number)+log(active.activist.size)*exit_s_board+log(active.activist.size)*exit_s_proxy, data = short.data.compust, family = "binomial")
-re_log1s_6   <- sqrt(diag( vcovHC(log1s_6) ))
+log1s_6 <- glm(success_of_stated_obj ~ (total.activist.number)+log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy, data = short.data.compust, family = "binomial")
+# re_log1s_6   <- sqrt(diag( vcovHC(log1s_6) ))
+re_log1s_6  = sqrt(diag(  cluster.vcov(log1s_6, short.data.compust$type1) ) )
 
 log1s_7 <- glm(success_of_stated_obj ~ (top20_number)+exit_s_board+exit_s_proxy, data = short.data.compust, family = "binomial")
-re_log1s_7    <- sqrt(diag(vcovHC(log1s_7) ))
+# re_log1s_7    <- sqrt(diag(vcovHC(log1s_7) ))
+re_log1s_7  = sqrt(diag(  cluster.vcov(log1s_7, short.data.compust$type1) ) )
 
-log1s_8 <- glm(success_of_stated_obj ~log(active.activist.size)+(top20_number)+exit_s_board+exit_s_proxy, data = short.data.compust, family = "binomial")
-re_log1s_8   <- sqrt(diag( vcovHC(log1s_8) ))
+log1s_8 <- glm(success_of_stated_obj ~log(active.activist.share)+(top20_number)+exit_s_board+exit_s_proxy, data = short.data.compust, family = "binomial")
+# re_log1s_8   <- sqrt(diag( vcovHC(log1s_8) ))
+re_log1s_8  = sqrt(diag(  cluster.vcov(log1s_8, short.data.compust$type1) ) )
+
 
 star=capture.output( stargazer(log1b_1, log1b_2, log1b_3, log1b_4, log1b_5, log1b_6, log1b_7, log1b_8,
                                type = "latex",  title = "Logit regressions with robust standard errors ", 
@@ -675,59 +686,76 @@ note.latex <- "\\multicolumn{9}{l} {\\parbox[t]{15cm}{ \\textit{Notes:} Logistic
 star[grepl("Note",star)] <- note.latex
 cat (star, sep = "\n")
 
+
 # Run OLS regressions of type ONE -- with heter robust se's 
 
 ols_1_binar_snum <- lm(won_board_ind ~total.activist.number, data = short.data.compust)
-robust_se_ols_1_binar_snum   <- sqrt(diag( vcovHC(ols_1_binar_snum)))
+# robust_se_ols_1_binar_snum   <- sqrt(diag( vcovHC(ols_1_binar_snum)))
+robust_se_ols_1_binar_snum  = sqrt(diag(  cluster.vcov(ols_1_binar_snum, short.data.compust$type1) ) )
 
-ols_1_binar_size <- lm(won_board_ind ~investor.number, data = short.data.compust)
-robust_se_ols_1_binar_size   <- sqrt(diag( vcovHC(ols_1_binar_size)))
+ols_1_binar_size <- lm(won_board_ind ~top20_number, data = short.data.compust)
+# robust_se_ols_1_binar_size   <- sqrt(diag( vcovHC(ols_1_binar_size)))
+robust_se_ols_1_binar_size  = sqrt(diag(  cluster.vcov(ols_1_binar_size, short.data.compust$type1) ) )
 
 ols1_a_cost <- lm(won_board_ind ~ total.activist.number+exit_s_board+exit_s_proxy, data = short.data.compust)
-robust_se_ols1_a_cost  <- sqrt(diag( vcovHC(ols1_a_cost) ))
+# robust_se_ols1_a_cost  <- sqrt(diag( vcovHC(ols1_a_cost) ))
+robust_se_ols1_a_cost  = sqrt(diag(  cluster.vcov(ols1_a_cost, short.data.compust$type1) ) )
 
-ols1_i_cost <- lm(won_board_ind ~ investor.number+exit_s_board+exit_s_proxy, data = short.data.compust)
-robust_se_ols1_i_cost  <- sqrt(diag( vcovHC(ols1_i_cost) ))
 
-ols1_binar <- lm(won_board_ind ~ total.activist.number+exit_s_board+exit_s_proxy+log(active.activist.size), data = short.data.compust)
-robust_se_ols1_binar   <- sqrt(diag( vcovHC(ols1_binar) ))
+ols1_i_cost <- lm(won_board_ind ~ top20_number+exit_s_board+exit_s_proxy, data = short.data.compust)
+# robust_se_ols1_i_cost  <- sqrt(diag( vcovHC(ols1_i_cost) ))
+robust_se_ols1_i_cost  = sqrt(diag(  cluster.vcov(ols1_i_cost, short.data.compust$type1) ) )
 
-ols1_binar_investor <- lm(won_board_ind ~ investor.number+log(active.activist.size)+exit_s_board+exit_s_proxy, data = short.data.compust)
-robust_se_ols1_binar_investor   <- sqrt(diag( vcovHC(ols1_binar_investor) ))
 
-ols1_binar_controls <- lm(won_board_ind ~ total.activist.number+log(active.activist.size)+exit_s_board+exit_s_proxy+age+log(size)+leverage+mtb, data = short.data.compust)
-robust_se_ols1_binar_controls   <- sqrt(diag( vcovHC(ols1_binar_controls) ))
+ols1_binar <- lm(won_board_ind ~ total.activist.number+exit_s_board+exit_s_proxy+log(active.activist.share), data = short.data.compust)
+# robust_se_ols1_binar   <- sqrt(diag( vcovHC(ols1_binar) ))
+robust_se_ols1_binar  = sqrt(diag(  cluster.vcov(ols1_binar, short.data.compust$type1) ) )
+
+ols1_binar_investor <- lm(won_board_ind ~ top20_number+log(active.activist.share)+exit_s_board+exit_s_proxy, data = short.data.compust)
+# robust_se_ols1_binar_investor   <- sqrt(diag( vcovHC(ols1_binar_investor) ))
+robust_se_ols1_binar_investor  = sqrt(diag(  cluster.vcov(ols1_binar_investor, short.data.compust$type1) ) )
+
+ols1_binar_controls <- lm(won_board_ind ~ total.activist.number+log(active.activist.share)+exit_s_board+exit_s_proxy+age+log(size)+leverage+mtb, data = short.data.compust)
+# robust_se_ols1_binar_controls   <- sqrt(diag( vcovHC(ols1_binar_controls) ))
+robust_se_ols1_binar_controls  = sqrt(diag(  cluster.vcov(ols1_binar_controls, short.data.compust$type1) ) )
 
 
 ols_1_classified_snum <- lm(success_of_stated_obj ~ (total.activist.number), data = short.data.compust)
 robust_se_ols_1_classified_snum   <- sqrt(diag( vcovHC(ols_1_classified_snum)))
+robust_se_ols_1_classified_snum  = sqrt(diag(  cluster.vcov(ols_1_classified_snum, short.data.compust$type1) ) )
 
-ols_1_classified_size <- lm(success_of_stated_obj ~ investor.number, data = short.data.compust)
-robust_se_ols_1_classified_size   <- sqrt(diag( vcovHC(ols_1_classified_size)))
+ols_1_classified_size <- lm(success_of_stated_obj ~ top20_number, data = short.data.compust)
+# robust_se_ols_1_classified_size   <- sqrt(diag( vcovHC(ols_1_classified_size)))
+robust_se_ols_1_classified_size  = sqrt(diag(  cluster.vcov(ols_1_classified_size, short.data.compust$type1) ) )
 
 ols1_a_cost_cl <- lm(success_of_stated_obj ~ total.activist.number+exit_s_board+exit_s_proxy, data = short.data.compust)
-robust_se_ols1_a_cost_cl  <- sqrt(diag( vcovHC(ols1_a_cost_cl) ))
+# robust_se_ols1_a_cost_cl  <- sqrt(diag( vcovHC(ols1_a_cost_cl) ))
+robust_se_ols1_a_cost_cl  = sqrt(diag(  cluster.vcov(ols1_a_cost_cl, short.data.compust$type1) ) )
 
-ols1_i_cost_cl <- lm(success_of_stated_obj ~ investor.number+exit_s_board+exit_s_proxy, data = short.data.compust)
-robust_se_ols1_i_cost_cl  <- sqrt(diag( vcovHC(ols1_i_cost_cl) ))
+ols1_i_cost_cl <- lm(success_of_stated_obj ~ top20_number+exit_s_board+exit_s_proxy, data = short.data.compust)
+# robust_se_ols1_i_cost_cl  <- sqrt(diag( vcovHC(ols1_i_cost_cl) ))
+robust_se_ols1_i_cost_cl  = sqrt(diag(  cluster.vcov(ols1_i_cost_cl, short.data.compust$type1) ) )
 
-ols1_classified <- lm(success_of_stated_obj ~ total.activist.number+exit_s_board+exit_s_proxy+log(active.activist.size), data = short.data.compust)
+ols1_classified <- lm(success_of_stated_obj ~ total.activist.number+exit_s_board+exit_s_proxy+log(active.activist.share), data = short.data.compust)
 robust_se_ols1_classified   <- sqrt(diag( vcovHC(ols1_classified) ))
+robust_se_ols1_classified  = sqrt(diag(  cluster.vcov(ols1_classified, short.data.compust$type1) ) )
 
-ols1_classified_investor <- lm(success_of_stated_obj ~ investor.number+exit_s_board+exit_s_proxy+log(active.activist.size), data = short.data.compust)
-robust_se_ols1_classified_investor   <- sqrt(diag(vcovHC(ols1_classified_investor) ))
+ols1_classified_investor <- lm(success_of_stated_obj ~ top20_number+exit_s_board+exit_s_proxy+log(active.activist.share), data = short.data.compust)
+# robust_se_ols1_classified_investor   <- sqrt(diag(vcovHC(ols1_classified_investor) ))
+robust_se_ols1_classified_investor  = sqrt(diag(  cluster.vcov(ols1_classified_investor, short.data.compust$type1) ) )
 
 # Add controls
 
-ols1_classified_controls <- lm(success_of_stated_obj ~ total.activist.number+exit_s_board+exit_s_proxy+log(active.activist.size)+age+log(size)+leverage+mtb, data = short.data.compust)
-robust_se_ols1_classified_controls   <- sqrt(diag( vcovHC(ols1_classified_controls) ))
+ols1_classified_controls <- lm(success_of_stated_obj ~ total.activist.number+exit_s_board+exit_s_proxy+log(active.activist.share)+age+log(size)+leverage+mtb, data = short.data.compust)
+# robust_se_ols1_classified_controls   <- sqrt(diag( vcovHC(ols1_classified_controls) ))
+robust_se_ols1_classified_controls  = sqrt(diag(  cluster.vcov(ols1_classified_controls, short.data.compust$type1) ) )
 
 # SECOND A STARGAZER OUTPUT IS HERE
 
 star=capture.output(stargazer(ols_1_binar_snum,ols_1_binar_size, ols1_a_cost, ols1_i_cost,
                               ols1_binar,ols1_binar_investor,ols1_binar_controls,
                               type = "latex",  title = "OLS regressions with robust standard errors.", 
-                              font.size = "scriptsize",
+                              font.size = "tiny",
                                report = "vct*",
                               digits = 4,
                               float.env="sidewaystable",header = FALSE,omit.stat=c("f", "ser"),
@@ -746,7 +774,7 @@ star=capture.output(stargazer(ols_1_classified_snum,ols_1_classified_size,
                               ols1_a_cost_cl,ols1_i_cost_cl,
                               ols1_classified, ols1_classified_investor, ols1_classified_controls,
                               type = "latex",  title = "OLS regressions with robust standard errors.",
-                              font.size = "scriptsize",
+                              font.size = "tiny",
                               report = "vct*",
                               digits = 4,
                               float.env="sidewaystable",header = FALSE,omit.stat=c("f", "ser"),
@@ -760,236 +788,77 @@ note.latex <- "\\multicolumn{8}{l} {\\parbox[t]{15cm}{ \\textit{Notes:} OLS regr
 star[grepl("Note",star)] <- note.latex
 cat (star, sep = "\n")
 
+# ------------------------------ OLS with number of connections that activist has
 
-
-
-# Add lags
-
-# Run OLS regressions of type ONE -- with heter robust se's
-# 
-# ols_1_binar_snum <- lm(won_board_ind ~lag_act_number, data = short.data.compust)
-# robust_se_ols_1_binar_snum   <- sqrt(diag( vcovHC(ols_1_binar_snum)))
-# 
-# ols_1_binar_size <- lm(won_board_ind ~log(active.activist.size)+lag_act_number, data = short.data.compust)
-# robust_se_ols_1_binar_size   <- sqrt(diag( vcovHC(ols_1_binar_size)))
-# 
-# ols1_binar <- lm(won_board_ind ~ log(active.activist.size)+lag_act_number, data = short.data.compust)
-# robust_se_ols1_binar   <- sqrt(diag( vcovHC(ols1_binar) ))
-# 
-# ols1_binar_investor <- lm(won_board_ind ~ log(active.activist.size)+investor.number+lag_act_number, data = short.data.compust)
-# robust_se_ols1_binar_investor   <- sqrt(diag( vcovHC(ols1_binar_investor) ))
-# 
-# ols_1_classified_snum <- lm(success_of_stated_obj ~lag_act_number, data = short.data.compust)
-# robust_se_ols_1_classified_snum   <- sqrt(diag( vcovHC(ols_1_classified_snum)))
-# 
-# ols_1_classified_size <- lm(success_of_stated_obj ~log(active.activist.size)+lag_act_number, data = short.data.compust)
-# robust_se_ols_1_classified_size   <- sqrt(diag( vcovHC(ols_1_classified_size)))
-# 
-# ols1_classified <- lm(success_of_stated_obj ~ log(active.activist.size)+lag_act_number, data = short.data.compust)
-# robust_se_ols1_classified   <- sqrt(diag( vcovHC(ols1_classified) ))
-# 
-# 
-# ols1_classified_investor <- lm(success_of_stated_obj ~ log(active.activist.size)+investor.number+lag_act_number, data = short.data.compust)
-# robust_se_ols1_classified_investor   <- sqrt(diag(vcovHC(ols1_classified_investor) ))
-
-# # Add controls
-# 
-# ols1_binar_controls <- lm(won_board_ind ~ log(active.activist.size)+lag_act_number+age+log(size)+leverage+mtb, data = short.data.compust)
-# robust_se_ols1_binar_controls   <- sqrt(diag( vcovHC(ols1_binar_controls) ))
-# 
-# ols1_classified_controls <- lm(success_of_stated_obj ~ log(active.activist.size)+lag_act_number+age+log(size)+leverage+mtb, data = short.data.compust)
-# robust_se_ols1_classified_controls   <- sqrt(diag( vcovHC(ols1_classified_controls) ))
-# 
-# # SECOND c STARGAZER OUTPUT IS HERE
-# 
-# star=capture.output(stargazer(ols_1_binar_snum,ols_1_binar_size, ols1_binar,ols1_binar_investor,ols1_binar_controls,
-#                         ols_1_classified_snum,ols_1_classified_size, ols1_classified, ols1_classified_investor, ols1_classified_controls,
-#           type = "latex",  title = "OLS regressions with robust standard errors.", font.size = "scriptsize", float.env="sidewaystable",header = FALSE,
-#            omit.stat=c("f", "ser"),
-#           se=list(robust_se_ols_1_binar_snum,robust_se_ols_1_binar_size, robust_se_ols1_binar,robust_se_ols1_binar_investor,robust_se_ols1_binar_controls,
-#                   robust_se_ols_1_classified_snum,robust_se_ols_1_classified_size, robust_se_ols1_classified,
-#                   robust_se_ols1_classified_investor,robust_se_ols1_classified_controls)))
-# note.latex <- "\\multicolumn{11}{l} {\\parbox[t]{22cm}{ \\textit{Notes:} OLS regression  of the equation $Y = a + b x + g N +controls+e$.
-#  \\textit{won\\_brep\\_dummy} is an indicator variable equal to 1 when at least 1 activist nominee was elected to the board.\\textit{success\\_of\\_stated\\_obj} is an indicator of fulfillment of activists' demands.  \\textit{active.activist.size} correponds to the total assets of an activist group, computed from 13F filings. \\textit{investor.number} is a total number of institutional investors that hold shares of a company. \\textit{total.activist.number} is the number of passive activist investors that hold shares of the company. Activist investor is defined as any investor that appeared in SharkWatch database at least once. \\textit{size} is the market value of the company. \\textit{age} is the age of the company. \\textit{leverage} is the leverage of the company.  Robust standard errors in parenthesis.  }} \\\\"
-# star[grepl("Note",star)] <- note.latex
-# cat (star, sep = "\n")
-
-
-# 
-# # Sales and operational profitab growth as outcome variables
-# 
-# ols1_sales <- lm(sales_growth ~ log(active.activist.size)+total.activist.number+exit_s_board+exit_s_proxy, data = short.data.compust)
-# robust_se_ols1_sales   <- sqrt(diag( vcovHC(ols1_sales) ))
-# 
-# ols1_sales_controls <- lm(sales_growth ~ log(active.activist.size)+total.activist.number+exit_s_board+exit_s_proxy+age+log(size)+leverage+mtb, data = short.data.compust)
-# robust_se_ols1_sales_controls   <- sqrt(diag( vcovHC(ols1_sales_controls) ))
-# 
-# 
-# ols1_operat <- lm(oper_profit_growth ~ log(active.activist.size)+exit_s_board+exit_s_proxy+total.activist.number, data = short.data.compust)
-# robust_se_ols1_operat    <- sqrt(diag( vcovHC(ols1_operat) ))
-# 
-# 
-# ols1_operat_controls <- lm(oper_profit_growth ~ log(active.activist.size)+total.activist.number+exit_s_board+exit_s_proxy+total.activist.number+age+log(size)+leverage+mtb, data = short.data.compust)
-# robust_se_ols1_operat_controls    <- sqrt(diag( vcovHC(ols1_operat_controls) ))
-# 
-# # THIRD STARGAZER OUTPUT IS HERE
-# 
-# ols1_output_operat = capture.output( stargazer(ols1_sales, ols1_sales_controls, ols1_operat,ols1_operat_controls,
-#           type = "latex",  title = "OLS regressions with robust se,  operational outcome variables", header = FALSE,
-#           omit.stat=c("f", "ser"),
-#           se=list(robust_se_ols1_sales, robust_se_ols1_sales_controls, robust_se_ols1_operat,robust_se_ols1_operat_controls)))
-# 
-# note.latex <- "\\multicolumn{5}{l} {\\parbox[t]{12cm}{ \\footnotesize \\textit{Notes:} OLS regression  of the equation $ Y = \\alpha + \\beta x + \\gamma N +controls+\\epsilon$.
-#  \\textit{sales\\_growth} is the growth of sales over the span of the campaign. \\textit{oper\\_profit\\_growth} is an operational profitability growth over the span of the campaign. Operational profitability is defined as in    \\textit{active.activist.size} correponds to the total assets of an activist group, computed from 13F filings. \\textit{investor.number} is a total number of institutional investors that hold shares of a company. \\textit{total.activist.number} is the number of passive activist investors that hold shares of the company. Activist investor is defined as any investor that appeared in SharkWatch database at least once. \\textit{size} is the market value of the company. \\textit{age} is the age of the company. \\textit{leverage} is the leverage of the company.  Robust standard errors in parenthesis.  }} \\\\"
-# ols1_output_operat[grepl("Note",ols1_output_operat)] <- note.latex
-# cat (ols1_output_operat, sep = "\n")
-
-
-
-#-------------------------------------------RUN TYPE 2 REGRESSIONS -------------------------------------------------------------------
-# Average
-
-ols2d_1 <- lm(won_board_ind ~ log(activist.size.average), data = short.data.compust)
-re_ols2_1    <- sqrt(diag( vcovHC(ols2d_1) ))
-
-ols2d_2 <- lm(won_board_ind ~ log(activist.size.vweighted), data = short.data.compust)
-re_ols2_2   <- sqrt(diag( vcovHC(ols2d_2) ))
-
-ols2d_3 <- lm(won_board_ind ~ log(activist.size.average)+exit_s_board+exit_s_proxy, data = short.data.compust)
-re_ols2_3    <- sqrt(diag( vcovHC(ols2d_3) ))
-
-ols2d_4 <- lm(won_board_ind ~ log(activist.size.vweighted)+exit_s_board+exit_s_proxy, data = short.data.compust)
-re_ols2_4   <- sqrt(diag( vcovHC(ols2d_4) ))
-
-ols2d_5 <- lm(won_board_ind ~ log(activist.size.average)+log(active.activist.size), data = short.data.compust)
-re_ols2_5    <- sqrt(diag( vcovHC(ols2d_5) ))
-
-ols2d_6 <- lm(won_board_ind ~ log(activist.size.vweighted)+log(active.activist.size), data = short.data.compust)
-re_ols2_6   <- sqrt(diag( vcovHC(ols2d_6) ))
-
-ols2d_7 <- lm(won_board_ind ~ log(activist.size.average)+exit_s_board+exit_s_proxy+log(active.activist.size)+age+log(size)+leverage+mtb, data = short.data.compust)
-re_ols2_7   <- sqrt(diag( vcovHC(ols2d_7) ))
-
-ols2d_8 <- lm(won_board_ind ~ log(activist.size.vweighted)+exit_s_board+exit_s_proxy+log(active.activist.size)+age+log(size)+leverage+mtb, data = short.data.compust)
-re_ols2_8   <- sqrt(diag( vcovHC(ols2d_8) ))
-
-##
-
-ols2s_1 <- lm(success_of_stated_obj ~ log(activist.size.average), data = short.data.compust)
-re_ols2s_1   <- sqrt(diag( vcovHC(ols2s_1) ))
-
-ols2s_2 <- lm(success_of_stated_obj ~ log(activist.size.vweighted), data = short.data.compust)
-re_ols2s_2  <- sqrt(diag( vcovHC(ols2s_2) ))
-
-ols2s_3 <- lm(success_of_stated_obj ~ log(activist.size.average)+exit_s_board+exit_s_proxy, data = short.data.compust)
-re_ols2s_3   <- sqrt(diag( vcovHC(ols2s_3) ))
-
-ols2s_4 <- lm(success_of_stated_obj ~ log(activist.size.vweighted)+exit_s_board+exit_s_proxy, data = short.data.compust)
-re_ols2s_4  <- sqrt(diag( vcovHC(ols2s_4) ))
-
-ols2s_5 <- lm(success_of_stated_obj ~ log(activist.size.average)+log(active.activist.size), data = short.data.compust)
-re_ols2s_5   <- sqrt(diag( vcovHC(ols2s_5) ))
-
-ols2s_6 <- lm(success_of_stated_obj ~ log(activist.size.vweighted)+log(active.activist.size), data = short.data.compust)
-re_ols2s_6  <- sqrt(diag( vcovHC(ols2s_6) ))
-
-ols2s_7 <- lm(success_of_stated_obj ~ log(activist.size.average)+log(active.activist.size)+age+log(size)+leverage+mtb, data = short.data.compust)
-re_ols2s_7  <- sqrt(diag( vcovHC(ols2s_7) ))
-
-ols2s_8 <- lm(success_of_stated_obj ~ log(active.activist.size)+log(activist.size.vweighted)+age+log(size)+leverage+mtb, data = short.data.compust)
-re_ols2s_8 <- sqrt(diag( vcovHC(ols2s_8) ))
-
-
-# FOURTH A STARGAZER OUTPUT IS HERE
-ols2_output = capture.output(stargazer(ols2d_1, ols2d_2, ols2d_3, ols2d_4, ols2d_5,ols2d_6,ols2d_7,ols2d_8,
-                                       type = "latex",  
-                                       title = "Basic spillower OLS regressions with robust standard errors",
-                                       font.size = "scriptsize", float.env="sidewaystable",header = FALSE,
-                                       omit.stat=c("f", "ser"),
-                                        report = "vct*",
-                                       digits = 4,
-                                       se=list(re_ols2_1, re_ols2_2,re_ols2_3,re_ols2_4,re_ols2_5,
-                                               re_ols2_6,re_ols2_7,re_ols2_8 )))
-
-note.latex <- "\\multicolumn{9}{l} {\\parbox[t]{15cm}{ \\textit{Notes:} OLS regression  of the equation $Y = \\alpha + \\beta x + \\gamma \\bar{x} +controls+\\epsilon$.
- \\textit{won\\_brep\\_dummy} is an indicator variable equal to 1 when at least 1 activist nominee was elected to the board.\\textit{success\\_of\\_stated\\_obj} is an indicator of fulfillment of activists' demands.  \\textit{active.activist.size} correponds to the total assets of an activist group, computed from 13F filings.   \\textit{activist.size.vweghted} is the sum of all the company's activists' assets weighted by the share of investments in the company. \\textit{activist.size.average} is an average of total assets of company's activists. Activist investor is defined as any investor that appeared in SharkWatch database at least once. \\textit{size} is the market value of the company. \\textit{age} is the age of the company. \\textit{leverage} is the leverage of the company.  Robust standard errors in parenthesis.  }} \\\\"
-ols2_output[grepl("Note",ols2_output)] <- note.latex
-cat (ols2_output, sep = "\n")
-
-
-
-# FOURTH A STARGAZER OUTPUT IS HERE
-ols2_output = capture.output(stargazer(ols2s_1, ols2s_2, ols2s_3, ols2s_4, ols2s_5,ols2s_6,ols2s_7,ols2s_8,
-                                       type = "latex",  
-                                       title = "Basic spillower OLS regressions with robust standard errors",
-                                       font.size = "scriptsize", float.env="sidewaystable",header = FALSE,
-                                       omit.stat=c("f", "ser"),
-                                        report = "vct*",
-                                       digits = 4,
-                                       se=list(re_ols2s_1, re_ols2s_2,re_ols2s_3,re_ols2s_4,re_ols2s_5,
-                                               re_ols2s_6,re_ols2s_7,re_ols2s_8 )))
-
-note.latex <- "\\multicolumn{9}{l} {\\parbox[t]{15cm}{ \\textit{Notes:} OLS regression  of the equation $Y = \\alpha + \\beta x + \\gamma \\bar{x} +controls+\\epsilon$.
- \\textit{won\\_brep\\_dummy} is an indicator variable equal to 1 when at least 1 activist nominee was elected to the board.\\textit{success\\_of\\_stated\\_obj} is an indicator of fulfillment of activists' demands.  \\textit{active.activist.size} correponds to the total assets of an activist group, computed from 13F filings.   \\textit{activist.size.vweghted} is the sum of all the company's activists' assets weighted by the share of investments in the company. \\textit{activist.size.average} is an average of total assets of company's activists. Activist investor is defined as any investor that appeared in SharkWatch database at least once. \\textit{size} is the market value of the company. \\textit{age} is the age of the company. \\textit{leverage} is the leverage of the company.  Robust standard errors in parenthesis.  }} \\\\"
-ols2_output[grepl("Note",ols2_output)] <- note.latex
-cat (ols2_output, sep = "\n")
-
-
-# ------------------------------ OLS weighted by  fund networks go here
-
-ols3d_1 <- lm(won_board_ind ~ scale(inv_size_nw_s), data = short.data.compust)
+ols3d_1 <- lm(won_board_ind ~ log_act_num_con, data = short.data.compust)
 re_ols3_1    <- sqrt(diag( vcovHC(ols3d_1) ))
+# re_ols3_1  = sqrt(diag(  cluster.vcov(ols3d_1, short.data.compust$type1) ) )
 
-ols3d_2 <- lm(won_board_ind ~ scale(inv_size_nw_spr), data = short.data.compust)
+ols3d_2 <- lm(won_board_ind ~ log_act_s, data = short.data.compust)
 re_ols3_2   <- sqrt(diag( vcovHC(ols3d_2) ))
+# re_ols3_2  = sqrt(diag(  cluster.vcov(ols3d_2, short.data.compust$type1) ) )
 
-ols3d_3 <- lm(won_board_ind ~ scale(inv_size_nw_s)+exit_s_board+exit_s_proxy, data = short.data.compust)
+ols3d_3 <- lm(won_board_ind ~ log_act_num_con+exit_s_board+exit_s_proxy, data = short.data.compust)
 re_ols3_3    <- sqrt(diag( vcovHC(ols3d_3) ))
+# re_ols3_3  = sqrt(diag(  cluster.vcov(ols3d_3, short.data.compust$type1) ) )
 
-ols3d_4 <- lm(won_board_ind ~ scale(inv_size_nw_spr)+exit_s_board+exit_s_proxy, data = short.data.compust)
-re_ols3_4   <- sqrt(diag( vcovHC(ols3d_4) ))
+ols3d_4 <- lm(won_board_ind ~ (log_act_s)+exit_s_board+exit_s_proxy, data = short.data.compust)
+# re_ols3_4   <- sqrt(diag( vcovHC(ols3d_4) ))
+re_ols3_4  = sqrt(diag(  cluster.vcov(ols3d_4, short.data.compust$type1) ) )
 
-ols3d_5 <- lm(won_board_ind ~ scale(inv_size_nw_s) +act_size_nw_s, data = short.data.compust)
-re_ols3_5    <- sqrt(diag( vcovHC(ols3d_5) ))
+ols3d_5 <- lm(won_board_ind ~ (log_act_num_con) +log(active.activist.share), data = short.data.compust)
+# re_ols3_5    <- sqrt(diag( vcovHC(ols3d_5) ))
+re_ols3_5  = sqrt(diag(  cluster.vcov(ols3d_5, short.data.compust$type1) ) )
 
-ols3d_6 <- lm(won_board_ind ~ scale(inv_size_nw_spr) + act_size_nw_spr, data = short.data.compust)
-re_ols3_6   <- sqrt(diag( vcovHC(ols3d_6) ))
+ols3d_6 <- lm(won_board_ind ~ (log_act_s) + log(active.activist.share), data = short.data.compust)
+# re_ols3_6   <- sqrt(diag( vcovHC(ols3d_6) ))
+re_ols3_6  = sqrt(diag(  cluster.vcov(ols3d_6, short.data.compust$type1) ) )
 
-ols3d_7 <- lm(won_board_ind ~ scale(inv_size_nw_s) +exit_s_board+exit_s_proxy+act_size_nw_s+age+scale(size)+leverage+mtb, data = short.data.compust)
-re_ols3_7   <- sqrt(diag( vcovHC(ols3d_7) ))
+ols3d_7 <- lm(won_board_ind ~ (log_act_num_con) +exit_s_board+exit_s_proxy+log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy, data = short.data.compust)
+# re_ols3_7   <- sqrt(diag( vcovHC(ols3d_7) ))
+re_ols3_7  = sqrt(diag(  cluster.vcov(ols3d_7, short.data.compust$type1) ) )
 
-ols3d_8 <- lm(won_board_ind ~ scale(inv_size_nw_spr)+exit_s_board+exit_s_proxy+ act_size_nw_s +age+scale(size)+leverage+mtb, data = short.data.compust)
-re_ols3_8   <- sqrt(diag( vcovHC(ols3d_8) ))
+ols3d_8 <- lm(won_board_ind ~ (log_act_s)+exit_s_board+exit_s_proxy+ log(active.activist.share) +age+scale(size)+leverage+mtb, data = short.data.compust)
+# re_ols3_8   <- sqrt(diag( vcovHC(ols3d_8) ))
+re_ols3_8  = sqrt(diag(  cluster.vcov(ols3d_8, short.data.compust$type1) ) )
 ##
 
-ols3ss_1 <- lm(success_of_stated_obj~ scale(inv_size_nw_s), data = short.data.compust)
+ols3ss_1 <- lm(success_of_stated_obj~ (log_act_num_con), data = short.data.compust)
 re_ols3s_1    <- sqrt(diag( vcovHC(ols3ss_1) ))
+# re_ols3s_1  = sqrt(diag(  cluster.vcov(ols3ss_1, short.data.compust$type1) ) )
 
-ols3ss_2 <- lm(success_of_stated_obj~ scale(inv_size_nw_spr), data = short.data.compust)
+ols3ss_2 <- lm(success_of_stated_obj~ (log_act_s), data = short.data.compust)
 re_ols3s_2   <- sqrt(diag( vcovHC(ols3ss_2) ))
+# re_ols3s_2  = sqrt(diag(  cluster.vcov(ols3ss_2, short.data.compust$type1) ) )
 
-ols3ss_3 <- lm(success_of_stated_obj~ scale(inv_size_nw_s)+exit_s_board+exit_s_proxy, data = short.data.compust)
+ols3ss_3 <- lm(success_of_stated_obj~ (log_act_num_con)+exit_s_board+exit_s_proxy, data = short.data.compust)
 re_ols3s_3    <- sqrt(diag( vcovHC(ols3ss_3) ))
+# re_ols3s_3  = sqrt(diag(  cluster.vcov(ols3ss_3, short.data.compust$type1) ) )
 
-ols3ss_4 <- lm(success_of_stated_obj~ scale(inv_size_nw_spr)+exit_s_board+exit_s_proxy, data = short.data.compust)
+ols3ss_4 <- lm(success_of_stated_obj~ (log_act_s)+exit_s_board+exit_s_proxy, data = short.data.compust)
 re_ols3s_4   <- sqrt(diag( vcovHC(ols3ss_4) ))
+# re_ols3s_4  = sqrt(diag(  cluster.vcov(ols3ss_4, short.data.compust$type1) ) )
 
-ols3ss_5 <- lm(success_of_stated_obj~ scale(inv_size_nw_s) +act_size_nw_s, data = short.data.compust)
+ols3ss_5 <- lm(success_of_stated_obj~ (log_act_num_con) +log(active.activist.share), data = short.data.compust)
 re_ols3s_5    <- sqrt(diag( vcovHC(ols3ss_5) ))
+# re_ols3s_5  = sqrt(diag(  cluster.vcov(ols3ss_5, short.data.compust$type1) ) )
 
-ols3ss_6 <- lm(success_of_stated_obj~ scale(inv_size_nw_spr) + act_size_nw_spr, data = short.data.compust)
+ols3ss_6 <- lm(success_of_stated_obj~ (log_act_s) + log(active.activist.share), data = short.data.compust)
 re_ols3s_6   <- sqrt(diag( vcovHC(ols3ss_6) ))
+# re_ols3s_6  = sqrt(diag(  cluster.vcov(ols3ss_6, short.data.compust$type1) ) )
 
-ols3ss_7 <- lm(success_of_stated_obj~ scale(inv_size_nw_s) +exit_s_board+exit_s_proxy+act_size_nw_s+age+scale(size)+leverage+mtb, data = short.data.compust)
+ols3ss_7 <- lm(success_of_stated_obj~ (log_act_num_con) +exit_s_board+exit_s_proxy+log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy, data = short.data.compust)
 re_ols3s_7   <- sqrt(diag( vcovHC(ols3ss_7) ))
+# re_ols3s_7  = sqrt(diag(  cluster.vcov(ols3ss_7, short.data.compust$type1) ) )
 
-ols3ss_8 <- lm(success_of_stated_obj~ scale(inv_size_nw_spr)+exit_s_board+exit_s_proxy+ act_size_nw_s +age+scale(size)+leverage+mtb, data = short.data.compust)
+ols3ss_8 <- lm(success_of_stated_obj~ (log_act_s)+exit_s_board+exit_s_proxy+ log(active.activist.share) +age+scale(size)+leverage+mtb, data = short.data.compust)
 re_ols3s_8   <- sqrt(diag( vcovHC(ols3ss_8) ))
+# re_ols3s_8  = sqrt(diag(  cluster.vcov(ols3ss_8, short.data.compust$type1) ) )
 
 ols3_output = capture.output(stargazer(ols3d_1, ols3d_2, ols3d_3, ols3d_4, ols3d_5,ols3d_6,ols3d_7,ols3d_8,
                                        type = "latex",  
                                        title = "Basic spillower OLS regressions with robust standard errors",
-                                       font.size = "scriptsize", float.env="sidewaystable",header = FALSE,
+                                       font.size = "tiny", float.env="sidewaystable",header = FALSE,
                                        omit.stat=c("f", "ser"),
                                         report = "vct*",
                                        digits = 4,
@@ -1005,7 +874,7 @@ cat (ols3_output, sep = "\n")
 ols3s_output = capture.output(stargazer(ols3ss_1, ols3ss_2, ols3ss_3, ols3ss_4, ols3ss_5,ols3ss_6,ols3ss_7,ols3ss_8,
                                        type = "latex",  
                                        title = "Basic spillower OLS regressions with robust standard errors",
-                                       font.size = "scriptsize", float.env="sidewaystable",header = FALSE,
+                                       font.size = "tiny", float.env="sidewaystable",header = FALSE,
                                        omit.stat=c("f", "ser"),
                                         report = "vct*",
                                        digits = 4,
@@ -1018,64 +887,79 @@ note.latex <- "\\multicolumn{9}{l} {\\parbox[t]{14cm}{ \\textit{Notes:} OLS regr
 ols3s_output[grepl("Note",ols3s_output)] <- note.latex
 cat (ols3s_output, sep = "\n")
 
+#----------OLS with networks weighted by top 20 fund network-----------------
 
 
-#----------OLS with networks weighted by investor fund network-----------------
-
-
-ols3d_1 <- lm(won_board_ind ~ scale(top20_size_nw_s), data = short.data.compust)
+ols3d_1 <- lm(won_board_ind ~ log_top20_share_nw_s, data = short.data.compust)
 re_ols3_1    <- sqrt(diag( vcovHC(ols3d_1) ))
+# re_ols3_1  = sqrt(diag(  cluster.vcov(ols3d_1, short.data.compust$type1) ) )
 
-ols3d_2 <- lm(won_board_ind ~ scale(top20_size_nw_spr), data = short.data.compust)
+ols3d_2 <- lm(won_board_ind ~ log_top20_share_nw_spr, data = short.data.compust)
 re_ols3_2   <- sqrt(diag( vcovHC(ols3d_2) ))
+# re_ols3_2  = sqrt(diag(  cluster.vcov(ols3d_2, short.data.compust$type1) ) )
 
-ols3d_3 <- lm(won_board_ind ~ scale(top20_size_nw_s) +exit_s_board+exit_s_proxy, data = short.data.compust)
+ols3d_3 <- lm(won_board_ind ~ log_top20_share_nw_s +exit_s_board+exit_s_proxy, data = short.data.compust)
 re_ols3_3    <- sqrt(diag( vcovHC(ols3d_3) ))
+# re_ols3_3  = sqrt(diag(  cluster.vcov(ols3d_3, short.data.compust$type1) ) )
 
-ols3d_4 <- lm(won_board_ind ~ scale(top20_size_nw_spr)+exit_s_board+exit_s_proxy, data = short.data.compust)
+ols3d_4 <- lm(won_board_ind ~ log_top20_share_nw_spr+exit_s_board+exit_s_proxy, data = short.data.compust)
 re_ols3_4   <- sqrt(diag( vcovHC(ols3d_4) ))
+# re_ols3_4  = sqrt(diag(  cluster.vcov(ols3d_4, short.data.compust$type1) ) )
 
-ols3d_5 <- lm(won_board_ind ~ scale(top20_size_nw_s) +log(active.activist.size), data = short.data.compust)
+ols3d_5 <- lm(won_board_ind ~ log_top20_share_nw_s +log(active.activist.share), data = short.data.compust)
 re_ols3_5    <- sqrt(diag( vcovHC(ols3d_5) ))
+# re_ols3_5  = sqrt(diag(  cluster.vcov(ols3d_5, short.data.compust$type1) ) )
 
-ols3d_6 <- lm(won_board_ind ~ scale(top20_size_nw_spr) + log(active.activist.size), data = short.data.compust)
+ols3d_6 <- lm(won_board_ind ~ log_top20_share_nw_spr + log(active.activist.share), data = short.data.compust)
 re_ols3_6   <- sqrt(diag( vcovHC(ols3d_6) ))
+# re_ols3_6  = sqrt(diag(  cluster.vcov(ols3d_6, short.data.compust$type1) ) )
 
-ols3d_7 <- lm(won_board_ind ~ scale(top20_size_nw_s) +exit_s_board+exit_s_proxy+age+log(size)+leverage+mtb, data = short.data.compust)
+ols3d_7 <- lm(won_board_ind ~ log_top20_share_nw_s +exit_s_board+exit_s_proxy+ log(active.activist.share) +poison_pill+age+log(size)+leverage+mtb, data = short.data.compust)
 re_ols3_7   <- sqrt(diag( vcovHC(ols3d_7) ))
+# re_ols3_7  = sqrt(diag(  cluster.vcov(ols3d_7, short.data.compust$type1) ) )
 
-ols3d_8 <- lm(won_board_ind ~ scale(top20_size_nw_spr)+exit_s_board+exit_s_proxy+ act_size_nw_s +age+log(size)+leverage+mtb, data = short.data.compust)
+ols3d_8 <- lm(won_board_ind ~ log_top20_share_nw_spr+exit_s_board+exit_s_proxy+ log(active.activist.share) +poison_pill+age+log(size)+leverage+mtb, data = short.data.compust)
 re_ols3_8   <- sqrt(diag( vcovHC(ols3d_8) ))
+# re_ols3_8  = sqrt(diag(  cluster.vcov(ols3d_8, short.data.compust$type1) ) )
 ##
 
-ols3ss_1 <- lm(success_of_stated_obj~ scale(top20_size_nw_s), data = short.data.compust)
+ols3ss_1 <- lm(success_of_stated_obj~ log_top20_share_nw_spr, data = short.data.compust)
 re_ols3s_1    <- sqrt(diag( vcovHC(ols3ss_1) ))
+# re_ols3s_1  = sqrt(diag(  cluster.vcov(ols3ss_1, short.data.compust$type1) ) )
 
-ols3ss_2 <- lm(success_of_stated_obj~ scale(top20_size_nw_spr), data = short.data.compust)
+ols3ss_2 <- lm(success_of_stated_obj~ log_top20_share_nw_s, data = short.data.compust)
 re_ols3s_2   <- sqrt(diag( vcovHC(ols3ss_2) ))
+# re_ols3s_2  = sqrt(diag(  cluster.vcov(ols3ss_2, short.data.compust$type1) ) )
 
-ols3ss_3 <- lm(success_of_stated_obj~ scale(top20_size_nw_s)+exit_s_board+exit_s_proxy, data = short.data.compust)
+ols3ss_3 <- lm(success_of_stated_obj~ log_top20_share_nw_spr+exit_s_board+exit_s_proxy, data = short.data.compust)
 re_ols3s_3    <- sqrt(diag( vcovHC(ols3ss_3) ))
+# re_ols3s_3  = sqrt(diag(  cluster.vcov(ols3ss_3, short.data.compust$type1) ) )
 
-ols3ss_4 <- lm(success_of_stated_obj~ scale(top20_size_nw_spr)+exit_s_board+exit_s_proxy, data = short.data.compust)
+ols3ss_4 <- lm(success_of_stated_obj~ log_top20_share_nw_s+exit_s_board+exit_s_proxy, data = short.data.compust)
 re_ols3s_4   <- sqrt(diag( vcovHC(ols3ss_4) ))
+# re_ols3s_4  = sqrt(diag(  cluster.vcov(ols3ss_4, short.data.compust$type1) ) )
 
-ols3ss_5 <- lm(success_of_stated_obj~ scale(top20_size_nw_s) +log(active.activist.size), data = short.data.compust)
+ols3ss_5 <- lm(success_of_stated_obj~ log_top20_share_nw_spr +log(active.activist.share), data = short.data.compust)
 re_ols3s_5    <- sqrt(diag( vcovHC(ols3ss_5) ))
+# re_ols3s_5  = sqrt(diag(  cluster.vcov(ols3ss_5, short.data.compust$type1) ) )
 
-ols3ss_6 <- lm(success_of_stated_obj~ scale(top20_size_nw_spr) + log(active.activist.size), data = short.data.compust)
+ols3ss_6 <- lm(success_of_stated_obj~ log_top20_share_nw_s + log(active.activist.share), data = short.data.compust)
 re_ols3s_6   <- sqrt(diag( vcovHC(ols3ss_6) ))
+# re_ols3s_6  = sqrt(diag(  cluster.vcov(ols3ss_6, short.data.compust$type1) ) )
 
-ols3ss_7 <- lm(success_of_stated_obj~ scale(top20_size_nw_s) +exit_s_board+exit_s_proxy+age+log(size)+leverage+mtb, data = short.data.compust)
+ols3ss_7 <- lm(success_of_stated_obj~ log_top20_share_nw_s+ log(active.activist.share) +exit_s_board+exit_s_proxy+poison_pill+age+log(size)+leverage+mtb, data = short.data.compust)
 re_ols3s_7   <- sqrt(diag( vcovHC(ols3ss_7) ))
+# re_ols3s_7  = sqrt(diag(  cluster.vcov(ols3ss_7, short.data.compust$type1) ) )
 
-ols3ss_8 <- lm(success_of_stated_obj~ scale(top20_size_nw_spr)+exit_s_board+exit_s_proxy +age+log(size)+leverage+mtb, data = short.data.compust)
+ols3ss_8 <- lm(success_of_stated_obj~ log_top20_share_nw_spr +exit_s_board+exit_s_proxy+ log(active.activist.share)+poison_pill+age+log(size)+leverage+mtb, data = short.data.compust)
 re_ols3s_8   <- sqrt(diag( vcovHC(ols3ss_8) ))
+# re_ols3s_8  = sqrt(diag(  cluster.vcov(ols3ss_8, short.data.compust$type1) ) )
+
 
 ols3_output = capture.output(stargazer(ols3d_1, ols3d_2, ols3d_3, ols3d_4, ols3d_5,ols3d_6,ols3d_7,ols3d_8,
                                        type = "latex",  
                                        title = "Basic spillower OLS regressions with robust standard errors",
-                                       font.size = "scriptsize", float.env="sidewaystable",header = FALSE,
+                                       font.size = "tiny", float.env="sidewaystable",header = FALSE,
                                        omit.stat=c("f", "ser"),
                                         report = "vct*",
                                        digits = 4,
@@ -1091,7 +975,213 @@ cat (ols3_output, sep = "\n")
 ols3s_output = capture.output(stargazer(ols3ss_1, ols3ss_2, ols3ss_3, ols3ss_4, ols3ss_5,ols3ss_6,ols3ss_7,ols3ss_8,
                                        type = "latex",  
                                        title = "Basic spillower OLS regressions with robust standard errors",
-                                       font.size = "scriptsize", float.env="sidewaystable",header = FALSE,
+                                       font.size = "tiny", float.env="sidewaystable",header = FALSE,
+                                       omit.stat=c("f", "ser"),
+                                        report = "vct*",
+                                       digits = 4,
+                                       se=list(re_ols3s_1, re_ols3s_2,re_ols3s_3,re_ols3s_4,re_ols3s_5,
+                                               re_ols3s_6,re_ols3s_7,re_ols3s_8 )))
+
+# 
+note.latex <- "\\multicolumn{9}{l} {\\parbox[t]{14cm}{ \\textit{Notes:} OLS regression  of the equation $Y = \\alpha + \\beta x + \\gamma \\bar{x} +controls+\\epsilon$.
+ \\textit{won\\_brep\\_dummy} is an indicator variable equal to 1 when at least 1 activist nominee was elected to the board.\\textit{success\\_of\\_stated\\_obj} is an indicator of fulfillment of activists' demands.  \\textit{active.activist.size} correponds to the total assets of an activist group, computed from 13F filings.   \\textit{activist.size.vweghted} is the sum of all the company's activists' assets weighted by the share of investments in the company. \\textit{activist.size.average} is an average of total assets of company's activists. Activist investor is defined as any investor that appeared in SharkWatch database at least once. \\textit{size} is the market value of the company. \\textit{age} is the age of the company. \\textit{leverage} is the leverage of the company.  Robust standard errors in parenthesis.  }} \\\\"
+ols3s_output[grepl("Note",ols3s_output)] <- note.latex
+cat (ols3s_output, sep = "\n")
+
+#----------OLS with networks weighted by top 20 fund network with weights----------------
+
+
+ols3d_1 <- lm(won_board_ind ~ log_top20_w_norm_s , data = short.data.compust)
+re_ols3_1    <- sqrt(diag( vcovHC(ols3d_1) ))
+# re_ols3_1  = sqrt(diag(  cluster.vcov(ols3d_1, short.data.compust$type1) ) )
+
+ols3d_2 <- lm(won_board_ind ~ log_top20_w_norm_spr, data = short.data.compust)
+re_ols3_2   <- sqrt(diag( vcovHC(ols3d_2) ))
+# re_ols3_2  = sqrt(diag(  cluster.vcov(ols3d_2, short.data.compust$type1) ) )
+
+ols3d_3 <- lm(won_board_ind ~ log_top20_w_norm_s +exit_s_board+exit_s_proxy, data = short.data.compust)
+re_ols3_3    <- sqrt(diag( vcovHC(ols3d_3) ))
+# re_ols3_3  = sqrt(diag(  cluster.vcov(ols3d_3, short.data.compust$type1) ) )
+
+ols3d_4 <- lm(won_board_ind ~ log_top20_w_norm_spr+exit_s_board+exit_s_proxy, data = short.data.compust)
+re_ols3_4   <- sqrt(diag( vcovHC(ols3d_4) ))
+# re_ols3_4  = sqrt(diag(  cluster.vcov(ols3d_4, short.data.compust$type1) ) )
+
+ols3d_5 <- lm(won_board_ind ~ log_top20_w_norm_s +log_active.activist_norm_weight, data = short.data.compust)
+re_ols3_5    <- sqrt(diag( vcovHC(ols3d_5) ))
+# re_ols3_5  = sqrt(diag(  cluster.vcov(ols3d_5, short.data.compust$type1) ) )
+
+ols3d_6 <- lm(won_board_ind ~ log_top20_w_norm_spr + log_active.activist_norm_weight, data = short.data.compust)
+re_ols3_6   <- sqrt(diag( vcovHC(ols3d_6) ))
+# re_ols3_6  = sqrt(diag(  cluster.vcov(ols3d_6, short.data.compust$type1) ) )
+
+ols3d_7 <- lm(won_board_ind ~ log_top20_w_norm_s +exit_s_board+exit_s_proxy+ log_active.activist_norm_weight +poison_pill+age+log(size)+leverage+mtb, data = short.data.compust)
+re_ols3_7   <- sqrt(diag( vcovHC(ols3d_7) ))
+# re_ols3_7  = sqrt(diag(  cluster.vcov(ols3d_7, short.data.compust$type1) ) )
+
+ols3d_8 <- lm(won_board_ind ~ log_top20_w_norm_spr+exit_s_board+exit_s_proxy+ log_active.activist_norm_weight +poison_pill+age+log(size)+leverage+mtb, data = short.data.compust)
+re_ols3_8   <- sqrt(diag( vcovHC(ols3d_8) ))
+# re_ols3_8  = sqrt(diag(  cluster.vcov(ols3d_8, short.data.compust$type1) ) )
+##
+
+ols3ss_1 <- lm(success_of_stated_obj~ log_top20_w_norm_s, data = short.data.compust)
+re_ols3s_1    <- sqrt(diag( vcovHC(ols3ss_1) ))
+# re_ols3s_1  = sqrt(diag(  cluster.vcov(ols3ss_1, short.data.compust$type1) ) )
+
+ols3ss_2 <- lm(success_of_stated_obj~ log_top20_w_norm_spr, data = short.data.compust)
+re_ols3s_2   <- sqrt(diag( vcovHC(ols3ss_2) ))
+# re_ols3s_2  = sqrt(diag(  cluster.vcov(ols3ss_2, short.data.compust$type1) ) )
+
+ols3ss_3 <- lm(success_of_stated_obj~ log_top20_w_norm_s+exit_s_board+exit_s_proxy, data = short.data.compust)
+re_ols3s_3    <- sqrt(diag( vcovHC(ols3ss_3) ))
+# re_ols3s_3  = sqrt(diag(  cluster.vcov(ols3ss_3, short.data.compust$type1) ) )
+
+ols3ss_4 <- lm(success_of_stated_obj~ log_top20_w_norm_spr+exit_s_board+exit_s_proxy, data = short.data.compust)
+re_ols3s_4   <- sqrt(diag( vcovHC(ols3ss_4) ))
+# re_ols3s_4  = sqrt(diag(  cluster.vcov(ols3ss_4, short.data.compust$type1) ) )
+
+ols3ss_5 <- lm(success_of_stated_obj~ log_top20_w_norm_s +log_active.activist_norm_weight, data = short.data.compust)
+re_ols3s_5    <- sqrt(diag( vcovHC(ols3ss_5) ))
+# re_ols3s_5  = sqrt(diag(  cluster.vcov(ols3ss_5, short.data.compust$type1) ) )
+
+ols3ss_6 <- lm(success_of_stated_obj~ log_top20_w_norm_spr + log_active.activist_norm_weight, data = short.data.compust)
+re_ols3s_6   <- sqrt(diag( vcovHC(ols3ss_6) ))
+# re_ols3s_6  = sqrt(diag(  cluster.vcov(ols3ss_6, short.data.compust$type1) ) )
+
+ols3ss_7 <- lm(success_of_stated_obj~ log_top20_w_norm_s+log_active.activist_norm_weight +exit_s_board+exit_s_proxy+poison_pill+age+log(size)+leverage+mtb, data = short.data.compust)
+re_ols3s_7   <- sqrt(diag( vcovHC(ols3ss_7) ))
+# re_ols3s_7  = sqrt(diag(  cluster.vcov(ols3ss_7, short.data.compust$type1) ) )
+
+ols3ss_8 <- lm(success_of_stated_obj~ log_top20_w_norm_spr +exit_s_board+exit_s_proxy+ log_active.activist_norm_weight+poison_pill+age+log(size)+leverage+mtb, data = short.data.compust)
+re_ols3s_8   <- sqrt(diag( vcovHC(ols3ss_8) ))
+# re_ols3s_8  = sqrt(diag(  cluster.vcov(ols3ss_8, short.data.compust$type1) ) )
+
+
+ols3_output = capture.output(stargazer(ols3d_1, ols3d_2, ols3d_3, ols3d_4, ols3d_5,ols3d_6,ols3d_7,ols3d_8,
+                                       type = "latex",  
+                                       title = "Basic spillower OLS regressions with robust standard errors",
+                                       font.size = "tiny", float.env="sidewaystable",header = FALSE,
+                                       omit.stat=c("f", "ser"),
+                                        report = "vct*",
+                                       digits = 4,
+                                       se=list(re_ols3_1, re_ols3_2,re_ols3_3,re_ols3_4,re_ols3_5,
+                                               re_ols3_6,re_ols3_7,re_ols3_8 )))
+
+# 
+note.latex <- "\\multicolumn{9}{l} {\\parbox[t]{14cm}{ \\textit{Notes:} OLS regression  of the equation $Y = \\alpha + \\beta x + \\gamma \\bar{x} +controls+\\epsilon$.
+ \\textit{won\\_brep\\_dummy} is an indicator variable equal to 1 when at least 1 activist nominee was elected to the board.\\textit{success\\_of\\_stated\\_obj} is an indicator of fulfillment of activists' demands.  \\textit{active.activist.size} correponds to the total assets of an activist group, computed from 13F filings.   \\textit{activist.size.vweghted} is the sum of all the company's activists' assets weighted by the share of investments in the company. \\textit{activist.size.average} is an average of total assets of company's activists. Activist investor is defined as any investor that appeared in SharkWatch database at least once. \\textit{size} is the market value of the company. \\textit{age} is the age of the company. \\textit{leverage} is the leverage of the company.  Robust standard errors in parenthesis.  }} \\\\"
+ols3_output[grepl("Note",ols3_output)] <- note.latex
+cat (ols3_output, sep = "\n")
+
+ols3s_output = capture.output(stargazer(ols3ss_1, ols3ss_2, ols3ss_3, ols3ss_4, ols3ss_5,ols3ss_6,ols3ss_7,ols3ss_8,
+                                       type = "latex",  
+                                       title = "Basic spillower OLS regressions with robust standard errors",
+                                       font.size = "tiny", float.env="sidewaystable",header = FALSE,
+                                       omit.stat=c("f", "ser"),
+                                        report = "vct*",
+                                       digits = 4,
+                                       se=list(re_ols3s_1, re_ols3s_2,re_ols3s_3,re_ols3s_4,re_ols3s_5,
+                                               re_ols3s_6,re_ols3s_7,re_ols3s_8 )))
+
+# 
+note.latex <- "\\multicolumn{9}{l} {\\parbox[t]{14cm}{ \\textit{Notes:} OLS regression  of the equation $Y = \\alpha + \\beta x + \\gamma \\bar{x} +controls+\\epsilon$.
+ \\textit{won\\_brep\\_dummy} is an indicator variable equal to 1 when at least 1 activist nominee was elected to the board.\\textit{success\\_of\\_stated\\_obj} is an indicator of fulfillment of activists' demands.  \\textit{active.activist.size} correponds to the total assets of an activist group, computed from 13F filings.   \\textit{activist.size.vweghted} is the sum of all the company's activists' assets weighted by the share of investments in the company. \\textit{activist.size.average} is an average of total assets of company's activists. Activist investor is defined as any investor that appeared in SharkWatch database at least once. \\textit{size} is the market value of the company. \\textit{age} is the age of the company. \\textit{leverage} is the leverage of the company.  Robust standard errors in parenthesis.  }} \\\\"
+ols3s_output[grepl("Note",ols3s_output)] <- note.latex
+cat (ols3s_output, sep = "\n")
+
+
+# WIth different measure
+
+
+#----------OLS with networks weighted by top 20 fund network with weights----------------
+
+
+ols3d_1 <- lm(won_board_ind ~ log_top20_w_sd_s , data = short.data.compust)
+# re_ols3_1    <- sqrt(diag( vcovHC(ols3d_1) ))
+re_ols3_1  = sqrt(diag(  cluster.vcov(ols3d_1, short.data.compust$type1) ) )
+
+ols3d_2 <- lm(won_board_ind ~ log_top20_w_sd_spr, data = short.data.compust)
+# re_ols3_2   <- sqrt(diag( vcovHC(ols3d_2) ))
+re_ols3_2  = sqrt(diag(  cluster.vcov(ols3d_2, short.data.compust$type1) ) )
+
+ols3d_3 <- lm(won_board_ind ~ log_top20_w_sd_s +exit_s_board+exit_s_proxy, data = short.data.compust)
+# re_ols3_3    <- sqrt(diag( vcovHC(ols3d_3) ))
+re_ols3_3  = sqrt(diag(  cluster.vcov(ols3d_3, short.data.compust$type1) ) )
+
+ols3d_4 <- lm(won_board_ind ~ log_top20_w_sd_spr+exit_s_board+exit_s_proxy, data = short.data.compust)
+# re_ols3_4   <- sqrt(diag( vcovHC(ols3d_4) ))
+re_ols3_4  = sqrt(diag(  cluster.vcov(ols3d_4, short.data.compust$type1) ) )
+
+ols3d_5 <- lm(won_board_ind ~ log_top20_w_sd_s +log_active.activist_sd_weight, data = short.data.compust)
+# re_ols3_5    <- sqrt(diag( vcovHC(ols3d_5) ))
+re_ols3_5  = sqrt(diag(  cluster.vcov(ols3d_5, short.data.compust$type1) ) )
+
+ols3d_6 <- lm(won_board_ind ~ log_top20_w_sd_spr + log_active.activist_sd_weight, data = short.data.compust)
+# re_ols3_6   <- sqrt(diag( vcovHC(ols3d_6) ))
+re_ols3_6  = sqrt(diag(  cluster.vcov(ols3d_6, short.data.compust$type1) ) )
+
+ols3d_7 <- lm(won_board_ind ~ log_top20_w_sd_s +exit_s_board+exit_s_proxy+ log_active.activist_sd_weight +poison_pill+age+log(size)+leverage+mtb, data = short.data.compust)
+# re_ols3_7   <- sqrt(diag( vcovHC(ols3d_7) ))
+re_ols3_7  = sqrt(diag(  cluster.vcov(ols3d_7, short.data.compust$type1) ) )
+
+ols3d_8 <- lm(won_board_ind ~ log_top20_w_sd_spr+exit_s_board+exit_s_proxy+ log_active.activist_sd_weight +poison_pill+age+log(size)+leverage+mtb, data = short.data.compust)
+# re_ols3_8   <- sqrt(diag( vcovHC(ols3d_8) ))
+re_ols3_8  = sqrt(diag(  cluster.vcov(ols3d_8, short.data.compust$type1) ) )
+##
+
+ols3ss_1 <- lm(success_of_stated_obj~ log_top20_w_sd_s, data = short.data.compust)
+# re_ols3s_1    <- sqrt(diag( vcovHC(ols3ss_1) ))
+re_ols3s_1  = sqrt(diag(  cluster.vcov(ols3ss_1, short.data.compust$type1) ) )
+
+ols3ss_2 <- lm(success_of_stated_obj~ log_top20_w_sd_spr, data = short.data.compust)
+# re_ols3s_2   <- sqrt(diag( vcovHC(ols3ss_2) ))
+re_ols3s_2  = sqrt(diag(  cluster.vcov(ols3ss_2, short.data.compust$type1) ) )
+
+ols3ss_3 <- lm(success_of_stated_obj~ log_top20_w_sd_s+exit_s_board+exit_s_proxy, data = short.data.compust)
+# re_ols3s_3    <- sqrt(diag( vcovHC(ols3ss_3) ))
+re_ols3s_3  = sqrt(diag(  cluster.vcov(ols3ss_3, short.data.compust$type1) ) )
+
+ols3ss_4 <- lm(success_of_stated_obj~ log_top20_w_sd_spr+exit_s_board+exit_s_proxy, data = short.data.compust)
+# re_ols3s_4   <- sqrt(diag( vcovHC(ols3ss_4) ))
+re_ols3s_4  = sqrt(diag(  cluster.vcov(ols3ss_4, short.data.compust$type1) ) )
+
+ols3ss_5 <- lm(success_of_stated_obj~ log_top20_w_sd_s +log_active.activist_sd_weight, data = short.data.compust)
+# re_ols3s_5    <- sqrt(diag( vcovHC(ols3ss_5) ))
+re_ols3s_5  = sqrt(diag(  cluster.vcov(ols3ss_5, short.data.compust$type1) ) )
+
+ols3ss_6 <- lm(success_of_stated_obj~ log_top20_w_sd_spr + log_active.activist_sd_weight, data = short.data.compust)
+# re_ols3s_6   <- sqrt(diag( vcovHC(ols3ss_6) ))
+re_ols3s_6  = sqrt(diag(  cluster.vcov(ols3ss_6, short.data.compust$type1) ) )
+
+ols3ss_7 <- lm(success_of_stated_obj~ log_top20_w_sd_s+log_active.activist_sd_weight +exit_s_board+exit_s_proxy+poison_pill+age+log(size)+leverage+mtb, data = short.data.compust)
+# re_ols3s_7   <- sqrt(diag( vcovHC(ols3ss_7) ))
+re_ols3s_7  = sqrt(diag(  cluster.vcov(ols3ss_7, short.data.compust$type1) ) )
+
+ols3ss_8 <- lm(success_of_stated_obj~ log_top20_w_sd_spr +exit_s_board+exit_s_proxy+ log_active.activist_sd_weight+poison_pill+age+log(size)+leverage+mtb, data = short.data.compust)
+# re_ols3s_8   <- sqrt(diag( vcovHC(ols3ss_8) ))
+re_ols3s_8  = sqrt(diag(  cluster.vcov(ols3ss_8, short.data.compust$type1) ) )
+
+
+ols3_output = capture.output(stargazer(ols3d_1, ols3d_2, ols3d_3, ols3d_4, ols3d_5,ols3d_6,ols3d_7,ols3d_8,
+                                       type = "latex",  
+                                       title = "Basic spillower OLS regressions with robust standard errors",
+                                       font.size = "tiny", float.env="sidewaystable",header = FALSE,
+                                       omit.stat=c("f", "ser"),
+                                        report = "vct*",
+                                       digits = 4,
+                                       se=list(re_ols3_1, re_ols3_2,re_ols3_3,re_ols3_4,re_ols3_5,
+                                               re_ols3_6,re_ols3_7,re_ols3_8 )))
+
+# 
+note.latex <- "\\multicolumn{9}{l} {\\parbox[t]{14cm}{ \\textit{Notes:} OLS regression  of the equation $Y = \\alpha + \\beta x + \\gamma \\bar{x} +controls+\\epsilon$.
+ \\textit{won\\_brep\\_dummy} is an indicator variable equal to 1 when at least 1 activist nominee was elected to the board.\\textit{success\\_of\\_stated\\_obj} is an indicator of fulfillment of activists' demands.  \\textit{active.activist.size} correponds to the total assets of an activist group, computed from 13F filings.   \\textit{activist.size.vweghted} is the sum of all the company's activists' assets weighted by the share of investments in the company. \\textit{activist.size.average} is an average of total assets of company's activists. Activist investor is defined as any investor that appeared in SharkWatch database at least once. \\textit{size} is the market value of the company. \\textit{age} is the age of the company. \\textit{leverage} is the leverage of the company.  Robust standard errors in parenthesis.  }} \\\\"
+ols3_output[grepl("Note",ols3_output)] <- note.latex
+cat (ols3_output, sep = "\n")
+
+ols3s_output = capture.output(stargazer(ols3ss_1, ols3ss_2, ols3ss_3, ols3ss_4, ols3ss_5,ols3ss_6,ols3ss_7,ols3ss_8,
+                                       type = "latex",  
+                                       title = "Basic spillower OLS regressions with robust standard errors",
+                                       font.size = "tiny", float.env="sidewaystable",header = FALSE,
                                        omit.stat=c("f", "ser"),
                                         report = "vct*",
                                        digits = 4,
@@ -1106,39 +1196,6 @@ cat (ols3s_output, sep = "\n")
 
 
 
-
-
-
-# # With operational outcomes
-# 
-# ols2_sales <- lm(sales_growth ~ log(active.activist.size)+log(activist.size.vweighted), data = short.data.compust)
-# robust_se_ols2_sales <- sqrt(diag( vcovHC(ols2_sales) ))
-# 
-# ols2_sales_controls <- lm(sales_growth ~ log(active.activist.size)+log(activist.size.vweighted)+age+log(size)+leverage+mtb, data = short.data.compust)
-# robust_se_ols2_sales_controls <- sqrt(diag( vcovHC(ols2_sales_controls) ))
-# 
-# 
-# ols_2_oper<- lm(oper_profit_growth ~ log(active.activist.size)+log(activist.size.vweighted), data = short.data.compust)
-# robust_se_ols_2_oper <- sqrt(diag( vcovHC(ols_2_oper) ))
-# 
-# 
-# ols_2_oper_controls <- lm(oper_profit_growth ~ log(active.activist.size)+log(activist.size.vweighted)+age+log(size)+leverage+mtb, data = short.data.compust)
-# robust_se_ols_2_oper_controls <- sqrt(diag( vcovHC(ols_2_oper_controls) ))
-# 
-# # FIFTH STARGAZER OUTPUT IS HERE
-# ols2_output_oper= capture.output( stargazer(ols2_sales, ols2_sales_controls,ols_2_oper,ols_2_oper_controls,
-#           type = "latex",  title = "Basic spillower OLS regressions with robust se, operational outcome variables",header = FALSE,
-#           omit.stat=c("f", "ser"),
-#           se=list(robust_se_ols2_sales,robust_se_ols2_sales_controls,robust_se_ols_2_oper,robust_se_ols_2_oper_controls)))
-# 
-# note.latex <- "\\multicolumn{5}{l} {\\parbox[t]{13cm}{\\footnotesize \\textit{Notes:} OLS regression  of the equation $Y = \\alpha + \\beta x + \\gamma \\bar{x} +controls+\\epsilon$.
-#  \\textit{sales\\_growth} is the growth of sales over the span of the campaign. \\textit{oper\\_profit\\_growth} is an operational profitability growth over the span of the campaign. Operational profitability is defined as in  Ball et. al (2016).  \\textit{active.activist.size} correponds to the total assets of an activist group, computed from 13F filings. \\\textit{active.activist.size} correponds to the total assets of an activist group, computed from 13F filings.   \\textit{activist.size.vweghted} is the sum of all the company's activists' assets weighted by the share of investments in the company. Activist investor is defined as any investor that appeared in SharkWatch database at least once. \\textit{size} is the market value of the company. \\textit{age} is the age of the company. \\textit{leverage} is the leverage of the company.  Robust standard errors in parenthesis.  }} \\\\"
-# ols2_output_oper[grepl("Note",ols2_output_oper)] <- note.latex
-# cat (ols2_output_oper, sep = "\n")
-
-
-
-#----------------------------------Run type 3 regressions - with centrality measures ---------------------------------
 
 cor2 = short.data.compust[c("success_of_stated_obj", "won_board_ind", "total.activist.number", "activist.size.vweighted", "activist.size.average","age","leverage","size","mtb","oper_profit",  "act_s_clos", "act_s_betw", "act_s_bon", "act_sp_clos",  "act_sp_betw", "act_sp_bon",
                                "oth_s_clos","oth_s_betw", "oth_s_bon", "oth_sp_clos", 
@@ -1161,7 +1218,6 @@ print(upper2_tex,
       floating = FALSE,
       hline.after = NULL, comment = FALSE,
       file="C:/Users/anakhmur/Documents/Networks/Analysis/Code/markdown/upper2_tex.tex")
-
 ```
 
 
@@ -1183,112 +1239,303 @@ print(upper2_tex,
 library(stargazer, quietly = TRUE)
 library(sandwich, quietly = TRUE)
 library(lmtest, quietly= TRUE)
-#----------------------------------Run type 3 regressions - with centrality measures ---------------------------------
-# With number 
-
-centr1b_1 <- lm(won_board_ind ~ act_s_clos+total.activist.number, data = short.data.compust)
-re_centr1b_1   <- sqrt(diag( vcovHC(centr1b_1) ))
-
-centr1b_2 <- lm(won_board_ind ~ act_s_betw+total.activist.number, data = short.data.compust)
-re_centr1b_2   <- sqrt(diag( vcovHC(centr1b_2) ))
-
-centr1b_3 <- lm(won_board_ind ~ act_sp_clos+total.activist.number, data = short.data.compust)
-re_centr1b_3   <- sqrt(diag( vcovHC(centr1b_3) ))
-
-centr1b_4 <- lm(won_board_ind ~ act_sp_betw+total.activist.number, data = short.data.compust)
-re_centr1b_4  <- sqrt(diag( vcovHC(centr1b_4) ))
+library(multiwayvcov, quietly= TRUE)
+library(lfe, quietly= TRUE)
 
 
-centr1s_1 <- lm(success_of_stated_obj ~ act_s_clos+total.activist.number, data = short.data.compust)
-re_centr1s_1   <- sqrt(diag( vcovHC(centr1s_1) ))
-
-centr1s_2 <- lm(success_of_stated_obj ~ act_s_betw+total.activist.number, data = short.data.compust)
-re_centr1s_2   <- sqrt(diag( vcovHC(centr1s_2) ))
-
-centr1s_3 <- lm(success_of_stated_obj ~ act_sp_clos+total.activist.number, data = short.data.compust)
-re_centr1s_3   <- sqrt(diag( vcovHC(centr1s_3) ))
-
-centr1s_4 <- lm(success_of_stated_obj ~ act_sp_betw+total.activist.number, data = short.data.compust)
-re_centr1s_4  <- sqrt(diag( vcovHC(centr1s_4) ))
 
 
-ols3_n_output = capture.output( stargazer(centr1b_1,centr1b_2, centr1b_3, centr1b_4, 
-                                          centr1s_1, centr1s_2, centr1s_3, centr1s_4,
-                                          type = "latex",  title = " OLS regressions with centrality measures, robust se",
-                                          header = FALSE,omit.stat=c("f", "ser"), font.size = "tiny", float.env="sidewaystable",
-                                          # report = "vct*"
-                                          digits = 4,
-                                          se=list(re_centr1b_1, re_centr1b_2, re_centr1b_3,re_centr1b_4,
-                                                  re_centr1s_1, re_centr1s_2, re_centr1s_3, re_centr1s_4
-                  )    ) )
+centr_b_1 <- lm(won_board_ind ~ log_act_s_clos+log_top20_s_clos, data = short.data.compust)
+# re_centr_b_1   <- sqrt(diag( vcovHC(centr_b_1) ))
+re_centr_b_1  = sqrt(diag(  cluster.vcov(centr_b_1, short.data.compust$type1) ) )
+
+centr_b_2 <- lm(won_board_ind ~ log_act_s_clos+log_top20_s_clos+exit_s_board+exit_s_proxy+poison_pill+mtb, data = short.data.compust)
+# re_centr_b_2   <- sqrt(diag( vcovHC(centr_b_2) ))
+re_centr_b_2  = sqrt(diag(  cluster.vcov(centr_b_2, short.data.compust$type1) ) )
+
+centr_b_3 <- lm(won_board_ind ~ log_act_s_betw+log_top20_s_betw, data = short.data.compust)
+# re_centr_b_3  <- sqrt(diag( vcovHC(centr_b_3) ))
+re_centr_b_3  = sqrt(diag(  cluster.vcov(centr_b_3, short.data.compust$type1) ) )
+
+centr_b_4 <- lm(won_board_ind ~ log_act_s_betw+log_top20_s_betw+exit_s_board+exit_s_proxy+poison_pill+mtb, data = short.data.compust)
+# re_centr_b_4  <- sqrt(diag( vcovHC(centr_b_4) ))
+re_centr_b_4  = sqrt(diag(  cluster.vcov(centr_b_4, short.data.compust$type1) ) )
+
+centr_b_5 <- lm(won_board_ind ~ log_act_sp_clos+log_top20_sp_clos, data = short.data.compust)
+# re_centr_b_5   <- sqrt(diag( vcovHC(centr_b_5) ))
+re_centr_b_5  = sqrt(diag(  cluster.vcov(centr_b_5, short.data.compust$type1) ) )
+
+centr_b_6 <- lm(won_board_ind ~ log_act_sp_clos+log_top20_sp_clos+exit_s_board+exit_s_proxy+poison_pill+mtb , data = short.data.compust)
+# re_centr_b_6   <- sqrt(diag( vcovHC(centr_b_6) ))
+re_centr_b_6  = sqrt(diag(  cluster.vcov(centr_b_6, short.data.compust$type1) ) )
+
+centr_b_7 <- lm(won_board_ind ~ log_act_sp_betw+log_top20_sp_betw, data = short.data.compust)
+# re_centr_b_7  <- sqrt(diag( vcovHC(centr_b_7) ))
+re_centr_b_7  = sqrt(diag(  cluster.vcov(centr_b_7, short.data.compust$type1) ) )
+
+centr_b_8 <- lm(won_board_ind ~ log_act_sp_betw+log_top20_sp_betw+exit_s_board+exit_s_proxy+poison_pill+mtb, data = short.data.compust)
+# re_centr_b_8  <- sqrt(diag( vcovHC(centr_b_8) ))
+re_centr_b_8  = sqrt(diag(  cluster.vcov(centr_b_8, short.data.compust$type1) ) )
 
 
-note.latex <- "\\multicolumn{13}{l} {\\parbox[t]{24cm}{ \\footnotesize \\textit{Notes:} OLS regression  of the equation $ Y = \\alpha + \\beta x + \\gamma N +controls+\\epsilon$. The regressions are run using the centrality measures to proxy for persuasiveness of an activist. Centrality is a characteristic of a node that captures the importance of the node position in a network. I use three centrality measures for this analysis. Closeness centrality shows how close each node to any other node. Betweennes centrality captures how well situated a node is in terms of the paths that it lies on. Degree centrality, is defined a the number of links incident to a node. Bonacich centrality is a degree centrality adjusted for the centrality of the neighbours in a network. The centrality measures were computed for both Simple and Spring networks. (By construction, centrality measures for Simple network are identical to the centrality measures of Number of Connections network.) After that I aggregated the centrality measures for each campaign. That is, $act\\_simple\\_closeness$ is a sum of closeness centralities of every active activist participating in a campaign, and $oth\\_simple\\_closeness$ is a sum of closeness centralities of every passive activist that invested in the company but does not participate in a campaign. $total.activist.number$ is the number of passive activist investors that hold shares of the company. 
-Robust standard errors in parenthesis.}} \\\\"
-ols3_n_output[grepl("Note",ols3_n_output)] <- note.latex
-cat (ols3_n_output, sep = "\n")
+centr_s_1 <- lm(success_of_stated_obj~ log_act_s_clos+log_top20_s_clos, data = short.data.compust)
+# re_centr_s_1   <- sqrt(diag( vcovHC(centr_s_1) ))
+re_centr_s_1  = sqrt(diag(  cluster.vcov(centr_s_1, short.data.compust$type1) ) )
 
-# Two closeness measures
+centr_s_2 <- lm(success_of_stated_obj~ log_act_s_clos+log_top20_s_clos+exit_s_board+exit_s_proxy+poison_pill+mtb, data = short.data.compust)
+# re_centr_s_2  <- sqrt(diag( vcovHC(centr_s_2) ))
+re_centr_s_2  = sqrt(diag(  cluster.vcov(centr_s_2, short.data.compust$type1) ) )
 
-ols3_binar_sic <- lm(won_board_ind ~ act_s_clos+oth_s_clos, data = short.data.compust)
-re_ols3_binar_sic   <- sqrt(diag( vcovHC(ols3_binar_sic) ))
+centr_s_3 <- lm(success_of_stated_obj~ log_act_s_betw+log_top20_s_betw, data = short.data.compust)
+# re_centr_s_3   <- sqrt(diag( vcovHC(centr_s_3) ))
+re_centr_s_3  = sqrt(diag(  cluster.vcov(centr_s_3, short.data.compust$type1) ) )
 
-ols3_binar_sibe <- lm(won_board_ind ~ act_s_betw+oth_s_betw, data = short.data.compust)
-re_ols3_binar_sibe   <- sqrt(diag( vcovHC(ols3_binar_sibe) ))
+centr_s_4 <- lm(success_of_stated_obj~ log_act_s_betw+log_top20_s_betw+exit_s_board+exit_s_proxy+poison_pill+mtb, data = short.data.compust)
+# re_centr_s_4  <- sqrt(diag( vcovHC(centr_s_4) ))
+re_centr_s_4  = sqrt(diag(  cluster.vcov(centr_s_4, short.data.compust$type1) ) )
 
-ols3_binar_sibo <- lm(won_board_ind ~ act_s_bon+oth_s_bon, data = short.data.compust)
-re_ols3_binar_sibo   <- sqrt(diag( vcovHC(ols3_binar_sibo) ))
+centr_s_5 <- lm(success_of_stated_obj~ log_act_sp_clos+log_top20_sp_clos, data = short.data.compust)
+# re_centr_s_5   <- sqrt(diag( vcovHC(centr_s_5) ))
+re_centr_s_5  = sqrt(diag(  cluster.vcov(centr_s_5, short.data.compust$type1) ) )
 
-ols3_binar_spc <- lm(won_board_ind ~ act_sp_clos+oth_sp_clos, data = short.data.compust)
-re_ols3_binar_spc   <- sqrt(diag( vcovHC(ols3_binar_spc) ))
+centr_s_6 <- lm(success_of_stated_obj~ log_act_sp_clos+log_top20_sp_clos+exit_s_board+exit_s_proxy+poison_pill+mtb, data = short.data.compust)
+# re_centr_s_6  <- sqrt(diag( vcovHC(centr_s_6) ))
+re_centr_s_6  = sqrt(diag(  cluster.vcov(centr_s_6, short.data.compust$type1) ) )
 
-ols3_binar_spbe <- lm(won_board_ind ~ act_sp_betw+oth_sp_betw, data = short.data.compust)
-re_ols3_binar_spbe  <- sqrt(diag( vcovHC(ols3_binar_spbe) ))
+centr_s_7 <- lm(success_of_stated_obj~ log_act_sp_betw+log_top20_sp_betw, data = short.data.compust)
+# re_centr_s_7   <- sqrt(diag( vcovHC(centr_s_7) ))
+re_centr_s_7  = sqrt(diag(  cluster.vcov(centr_s_7, short.data.compust$type1) ) )
 
-ols3_binar_sbo <- lm(won_board_ind ~ act_sp_bon+oth_sp_bon, data = short.data.compust)
-re_ols3_binar_sbe   <- sqrt(diag( vcovHC(ols3_binar_sbo) ))
-
-
-ols3_classified_sic <- lm(success_of_stated_obj ~ act_s_clos+oth_s_clos, data = short.data.compust)
-re_ols3_classified_sic   <- sqrt(diag( vcovHC(ols3_classified_sic) ))
-
-ols3_classified_sibe <- lm(success_of_stated_obj ~ act_s_betw+oth_s_betw, data = short.data.compust)
-re_ols3_classified_sibe   <- sqrt(diag( vcovHC(ols3_classified_sibe) ))
-
-ols3_classified_sibo <- lm(success_of_stated_obj ~ act_s_bon+oth_s_bon, data = short.data.compust)
-re_ols3_classified_sibo   <- sqrt(diag( vcovHC(ols3_classified_sibo) ))
-
-ols3_classified_spc <- lm(success_of_stated_obj ~ act_sp_clos+oth_sp_clos, data = short.data.compust)
-re_ols3_classified_spc   <- sqrt(diag( vcovHC(ols3_classified_spc) ))
-
-ols3_classified_spbe <- lm(success_of_stated_obj ~ act_sp_betw+oth_sp_betw, data = short.data.compust)
-re_ols3_classified_spbe  <- sqrt(diag( vcovHC(ols3_classified_spbe) ))
-
-ols3_classified_sbo <- lm(success_of_stated_obj ~ act_sp_bon+oth_sp_bon, data = short.data.compust)
-re_ols3_classified_sbe   <- sqrt(diag( vcovHC(ols3_classified_sbo) ))
+centr_s_8 <- lm(success_of_stated_obj~ log_act_sp_betw+log_top20_sp_betw+exit_s_board+exit_s_proxy+poison_pill+mtb, data = short.data.compust)
+# re_centr_s_8  <- sqrt(diag( vcovHC(centr_s_8) ))
+re_centr_s_8  = sqrt(diag(  cluster.vcov(centr_s_8, short.data.compust$type1) ) )
 
 
-ols3_output = capture.output( stargazer(ols3_binar_sic,ols3_binar_sibe,ols3_binar_sibo,
-                                       ols3_binar_spc, ols3_binar_spbe, ols3_binar_sbo,
-                                       ols3_classified_sic, ols3_classified_sibe, ols3_classified_sibo,
-                                       ols3_classified_spc, ols3_classified_spbe,ols3_classified_sbo,
-          type = "latex",  title = " OLS regressions with centrality measures, robust se",header = FALSE,
-           report = "vct*", digits = 4,
-          omit.stat=c("f", "ser"), font.size = "tiny", float.env="sidewaystable"
-          
-          # ,report = "vct*",
-          # se=list(re_ols3_binar_sic,re_ols3_binar_sibe,re_ols3_binar_sibo,
-          #         re_ols3_binar_spc,re_ols3_binar_spbe,re_ols3_binar_sbe,
-          #         re_ols3_classified_sic,re_ols3_classified_sibe,re_ols3_classified_sibo,
-          #         re_ols3_classified_spc,re_ols3_classified_spbe,re_ols3_classified_sbe)   
-          ))
+
+ols3_output = capture.output( stargazer(centr_b_1,centr_b_2,centr_b_3,centr_b_4,
+                                        centr_b_5,
+                                        centr_b_6, 
+                                        centr_b_7,
+                                        centr_b_8,
+                                       type = "latex",  title = " OLS regressions with centrality measures, robust se",header = FALSE,
+                                       report = "vct*", 
+                                       digits = 4,
+                                       omit.stat=c("f", "ser"), font.size = "tiny", float.env="sidewaystable",
+                                       se=list(re_centr_b_1, re_centr_b_2, re_centr_b_3, re_centr_b_4,
+                                               re_centr_b_5,
+                                               re_centr_b_6, 
+                                               re_centr_b_7,
+                                               re_centr_b_8)))
 
 
-note.latex <- "\\multicolumn{13}{l} {\\parbox[t]{22cm}{\\footnotesize \\textit{Notes:} OLS regression  of the equation $Y = \\alpha + \\beta x + \\gamma \\bar{x} +controls+\\epsilon$.The regressions are run using the centrality measures to proxy for persuasiveness of an activist. Centrality is a characteristic of a node that captures the importance of the node position in a network. I use three centrality measures for this analysis. Closeness centrality shows how close each node to any other node. Betweennes centrality captures how well situated a node is in terms of the paths that it lies on. Degree centrality, is defined a the number of links incident to a node. Bonacich centrality is a degree centrality adjusted for the centrality of the neighbours in a network. The centrality measures were computed for both Simple and Spring networks. (By construction, centrality measures for Simple network are identical to the centrality measures of Number of Connections network.) After that I aggregated the centrality measures for each campaign. That is, $act\\_simple\\_closeness$ is a sum of closeness centralities of every active activist participating in a campaign, and $oth\\_simple\\_closeness$ is a sum of closeness centralities of every passive activist that invested in the company but does not participate in a campaign. 
+note.latex <- "\\multicolumn{9}{l} {\\parbox[t]{22cm}{\\footnotesize \\textit{Notes:} OLS regression  of the equation $Y = \\alpha + \\beta x + \\gamma \\bar{x} +controls+\\epsilon$.The regressions are run using the centrality measures to proxy for persuasiveness of an activist. Centrality is a characteristic of a node that captures the importance of the node position in a network. I use three centrality measures for this analysis. Closeness centrality shows how close each node to any other node. Betweennes centrality captures how well situated a node is in terms of the paths that it lies on. Degree centrality, is defined a the number of links incident to a node. Bonacich centrality is a degree centrality adjusted for the centrality of the neighbours in a network. The centrality measures were computed for both Simple and Spring networks. (By construction, centrality measures for Simple network are identical to the centrality measures of Number of Connections network.) After that I aggregated the centrality measures for each campaign. That is, $act\\_simple\\_closeness$ is a sum of closeness centralities of every active activist participating in a campaign, and $oth\\_simple\\_closeness$ is a sum of closeness centralities of every passive activist that invested in the company but does not participate in a campaign. 
+Robust standard errors in parenthesis. }} \\\\"
+ols3_output[grepl("Note",ols3_output)] <- note.latex
+cat (ols3_output, sep = "\n")
+
+ols3_output = capture.output( stargazer(centr_s_1,centr_s_2,centr_s_3,centr_s_4,
+                                        centr_s_5, centr_s_6, centr_s_7, centr_s_8,
+                                       type = "latex",  title = " OLS regressions with centrality measures, robust se",header = FALSE,
+                                       report = "vct*", 
+                                       digits = 4,
+                                       omit.stat=c("f", "ser"), font.size = "tiny", float.env="sidewaystable",
+                                       se=list(re_centr_s_1, re_centr_s_2, re_centr_s_3, re_centr_s_4,
+                                               re_centr_s_5, re_centr_s_6, re_centr_s_7, re_centr_s_8
+                                               )))
+
+
+note.latex <- "\\multicolumn{9}{l} {\\parbox[t]{22cm}{\\footnotesize \\textit{Notes:} OLS regression  of the equation $Y = \\alpha + \\beta x + \\gamma \\bar{x} +controls+\\epsilon$.The regressions are run using the centrality measures to proxy for persuasiveness of an activist. Centrality is a characteristic of a node that captures the importance of the node position in a network. I use three centrality measures for this analysis. Closeness centrality shows how close each node to any other node. Betweennes centrality captures how well situated a node is in terms of the paths that it lies on. Degree centrality, is defined a the number of links incident to a node. Bonacich centrality is a degree centrality adjusted for the centrality of the neighbours in a network. The centrality measures were computed for both Simple and Spring networks. (By construction, centrality measures for Simple network are identical to the centrality measures of Number of Connections network.) After that I aggregated the centrality measures for each campaign. That is, $act\\_simple\\_closeness$ is a sum of closeness centralities of every active activist participating in a campaign, and $oth\\_simple\\_closeness$ is a sum of closeness centralities of every passive activist that invested in the company but does not participate in a campaign. 
 Robust standard errors in parenthesis. }} \\\\"
 ols3_output[grepl("Note",ols3_output)] <- note.latex
 cat (ols3_output, sep = "\n")
 
 
-```
+#### TABLES FOR PRES HERE
 
+
+log1s_7 <- lm(success_of_stated_obj ~ (top20_number)+short_term+exit_s_board+exit_s_proxy+log(active.activist.share)+log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy+poison_pill+age+log(size)+leverage+mtb+factor(holder_type), data = short.data.compust)
+# re_log1s_7    <- sqrt(diag(vcovHC(log1s_7) ))
+re_log1s_7  = sqrt(diag(  cluster.vcov(log1s_7, short.data.compust$type1) ) )
+
+
+reg1 <- lm(success_of_stated_obj ~ top20_number+exit_s_board+exit_s_proxy+log(active.activist.share)+ log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy +poison_pill+age+log(size)+leverage+mtb
+           # +factor(holder_type)
+           , data = short.data.compust)
+# se1   <- sqrt(diag(vcovHC(reg1) ))
+se1  = sqrt(diag(  cluster.vcov(reg1, short.data.compust$type1) ) )
+
+reg2 <- lm(success_of_stated_obj~ (log_act_num_con) +exit_s_board+exit_s_proxy+log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy+poison_pill+age+log(size)+leverage+mtb
+           # +factor(holder_type)
+           , data = short.data.compust)
+se2   <- sqrt(diag( vcovHC(reg2) ))
+# se2  = sqrt(diag(  cluster.vcov(reg2, short.data.compust$type1) ) )
+
+reg3 <- lm(success_of_stated_obj~ log_top20_share_nw_s +exit_s_board+exit_s_proxy+log(active.activist.share)+log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy+poison_pill+age+log(size)+leverage+mtb
+           # + factor(holder_type)
+           ,data = short.data.compust)
+se3   <- sqrt(diag( vcovHC(reg3) ))
+# se3  = sqrt(diag(  cluster.vcov(reg3, short.data.compust$type1) ) )
+
+reg4 <- lm(success_of_stated_obj~ log_top20_share_nw_spr +exit_s_board+exit_s_proxy+ log(active.activist.share)+log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy+poison_pill+age+log(size)+leverage+mtb
+           # +factor(holder_type)
+           ,data = short.data.compust)
+se4   <- sqrt(diag( vcovHC(reg4) ))
+# se4  = sqrt(diag(  cluster.vcov(reg4, short.data.compust$type1) ) )
+
+reg5 <- lm(success_of_stated_obj~ log_top20_w_norm_s +exit_s_board+exit_s_proxy+log_active.activist_norm_weight+log_active.activist_norm_weight*exit_s_board+
+             log_active.activist_norm_weight*exit_s_proxy+poison_pill+age+log(size)+leverage+mtb
+           # +factor(holder_type)
+           , data = short.data.compust)
+se5   <- sqrt(diag( vcovHC(reg5) ))
+# se5  = sqrt(diag(  cluster.vcov(reg5, short.data.compust$type1) ) )
+
+reg6 <- lm(success_of_stated_obj~ log_top20_w_norm_spr +exit_s_board+exit_s_proxy+ log_active.activist_norm_weight+log_active.activist_norm_weight*exit_s_board+log_active.activist_norm_weight*exit_s_proxy+poison_pill+age+log(size)+leverage+mtb
+           # +factor(holder_type)
+           , data = short.data.compust)
+se6   <- sqrt(diag( vcovHC(reg6) ))
+# se6  = sqrt(diag(  cluster.vcov(reg6, short.data.compust$type1) ) )
+
+
+reg7 <- lm(success_of_stated_obj~ log_top20_w_sd_s++exit_s_board+exit_s_proxy+log_active.activist_sd_weight+log_active.activist_sd_weight*exit_s_board+log_active.activist_sd_weight*exit_s_proxy +poison_pill+age+log(size)+leverage+mtb
+           # +factor(holder_type)
+           , data = short.data.compust)
+se7   <- sqrt(diag( vcovHC(reg7) ))
+# se7  = sqrt(diag(  cluster.vcov(reg7, short.data.compust$type1) ) )
+
+reg8 <- lm(success_of_stated_obj~ log_top20_w_sd_spr +exit_s_board+exit_s_proxy+ log_active.activist_sd_weight+log_active.activist_sd_weight*exit_s_board+log_active.activist_sd_weight*exit_s_proxy+poison_pill+age+log(size)+leverage+mtb
+           # +factor(holder_type)
+           , data = short.data.compust)
+se8   <- sqrt(diag( vcovHC(reg8) ))
+# se8  = sqrt(diag(  cluster.vcov(reg8, short.data.compust$type1) ) )
+
+ols3_output = capture.output(stargazer(reg1, reg2, reg3, reg4, reg5,reg6,reg7,reg8,
+                                       type = "latex",  
+                                       title = "OLS regressions with robust standard errors, clustered by campaign type. Each regression contains firm level controls.",
+                                       font.size = "tiny", float.env="sidewaystable",header = FALSE,
+                                       omit.stat=c("f", "ser"),
+                                        report = "vct*",
+                                       digits = 4,
+                                        omit = c("holder_type", "age","log(size)", "leverage", "mtb"),
+                                       # omit.labels = "Firm specific controls?",
+                                       se=list(se1, se2,se3,se4,se5,
+                                               se6,se7,se8 )))
+
+# 
+note.latex <- "\\multicolumn{9}{l} {\\parbox[t]{14cm}{ \\textit{Notes:} }} \\\\"
+ols3_output[grepl("Note",ols3_output)] <- note.latex
+cat (ols3_output, sep = "\n")
+
+
+reg1 <- glm(success_of_stated_obj ~ top20_number+exit_s_board+exit_s_proxy+log(active.activist.share)+ log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy +poison_pill+age+log(size)+leverage+mtb, data = short.data.compust, family = "binomial")
+# se1   <- sqrt(diag(vcovHC(reg1) ))
+se1  = sqrt(diag(  cluster.vcov(reg1, short.data.compust$type1) ) )
+
+reg2 <- glm(success_of_stated_obj~ (log_act_num_con) +top20_number +exit_s_board+exit_s_proxy+log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy+poison_pill+age+log(size)+leverage+mtb, data = short.data.compust, family = "binomial")
+se2   <- sqrt(diag( vcovHC(reg2) ))
+# se2  = sqrt(diag(  cluster.vcov(reg2, short.data.compust$type1) ) )
+
+reg3 <- glm(success_of_stated_obj~ log_top20_share_nw_s +exit_s_board+exit_s_proxy+log(active.activist.share)+log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy+poison_pill+age+log(size)+leverage+mtb, data = short.data.compust, family = "binomial")
+se3   <- sqrt(diag( vcovHC(reg3) ))
+# se3  = sqrt(diag(  cluster.vcov(reg3, short.data.compust$type1) ) )
+
+reg4 <- glm(success_of_stated_obj~ log_top20_share_nw_spr +exit_s_board+exit_s_proxy+ log(active.activist.share)+log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy+poison_pill+age+log(size)+leverage+mtb, data = short.data.compust,
+            family = "binomial")
+se4   <- sqrt(diag( vcovHC(reg4) ))
+# se4  = sqrt(diag(  cluster.vcov(reg4, short.data.compust$type1) ) )
+
+reg5 <- glm(success_of_stated_obj~ log_top20_w_norm_s +exit_s_board+exit_s_proxy+log_active.activist_norm_weight+log_active.activist_norm_weight*exit_s_board+log_active.activist_norm_weight*exit_s_proxy+poison_pill+age+log(size)+leverage+mtb, data = short.data.compust, family = "binomial")
+se5   <- sqrt(diag( vcovHC(reg5) ))
+# se5  = sqrt(diag(  cluster.vcov(reg5, short.data.compust$type1) ) )
+
+reg6 <- glm(success_of_stated_obj~ log_top20_w_norm_spr +exit_s_board+exit_s_proxy+ log_active.activist_norm_weight+log_active.activist_norm_weight*exit_s_board+log_active.activist_norm_weight*exit_s_proxy+poison_pill+age+log(size)+leverage+mtb, data = short.data.compust, family = "binomial")
+se6   <- sqrt(diag( vcovHC(reg6) ))
+# se6  = sqrt(diag(  cluster.vcov(reg6, short.data.compust$type1) ) )
+
+
+reg7 <- glm(success_of_stated_obj~ log_top20_w_sd_s+exit_s_board+exit_s_proxy+log_active.activist_sd_weight+log_active.activist_sd_weight*exit_s_board+log_active.activist_sd_weight*exit_s_proxy +poison_pill+age+log(size)+leverage+mtb, data = short.data.compust, family = "binomial")
+se7   <- sqrt(diag( vcovHC(reg7) ))
+# se7  = sqrt(diag(  cluster.vcov(reg7, short.data.compust$type1) ) )
+
+reg8 <- glm(success_of_stated_obj~ log_top20_w_sd_spr +exit_s_board+exit_s_proxy+ log_active.activist_sd_weight+log_active.activist_sd_weight*exit_s_board+log_active.activist_sd_weight*exit_s_proxy+poison_pill+age+log(size)+leverage+mtb, data = short.data.compust, family = "binomial")
+se8   <- sqrt(diag( vcovHC(reg8) ))
+# se8  = sqrt(diag(  cluster.vcov(reg8, short.data.compust$type1) ) )
+
+ols3_output = capture.output(stargazer(reg1, reg2, reg3, reg4, reg5,reg6,reg7,reg8,
+                                       type = "latex",  
+                                       title = "OLS regressions with robust standard errors, clustered by campaign type",
+                                       font.size = "tiny", float.env="sidewaystable",header = FALSE,
+                                       omit.stat=c("f", "ser"),
+                                        report = "vct*",
+                                       digits = 4,
+                                       se=list(se1, se2,se3,se4,se5,
+                                               se6,se7,se8 )))
+
+# 
+note.latex <- "\\multicolumn{9}{l} {\\parbox[t]{14cm}{ \\textit{Notes:}   }} \\\\"
+ols3_output[grepl("Note",ols3_output)] <- note.latex
+cat (ols3_output, sep = "\n")
+
+
+#----------------------------------Run type 3 regressions - with centrality measures ---------------------------------
+
+
+
+# Two closeness measures
+
+ols3_binar_sic <- lm(won_board_ind ~ act_s_clos+oth_s_clos+log_top20_w_norm_spr +exit_s_board+exit_s_proxy+ log_active.activist_norm_weight++poison_pill+age+log(size)+leverage+mtb+short_term, data = short.data.compust)
+re_ols3_binar_sic   <- sqrt(diag( vcovHC(ols3_binar_sic) ))
+
+ols3_binar_sibe <- lm(won_board_ind ~ act_s_betw+oth_s_betw+log_top20_w_norm_spr +exit_s_board+exit_s_proxy+ log_active.activist_norm_weight++poison_pill+age+log(size)+leverage+mtb+short_term, data = short.data.compust)
+re_ols3_binar_sibe   <- sqrt(diag( vcovHC(ols3_binar_sibe) ))
+
+ols3_binar_sibo <- lm(won_board_ind ~ act_s_bon+oth_s_bon+log_top20_w_norm_spr +exit_s_board+exit_s_proxy+ log_active.activist_norm_weight+poison_pill+age+log(size)+leverage+mtb, data = short.data.compust)
+re_ols3_binar_sibo   <- sqrt(diag( vcovHC(ols3_binar_sibo) ))
+
+ols3_binar_spc <- lm(won_board_ind ~ act_sp_clos+oth_sp_clos+log_top20_w_norm_spr +exit_s_board+exit_s_proxy+ log_active.activist_norm_weight+poison_pill+age+log(size)+leverage+mtb+short_term, data = short.data.compust)
+re_ols3_binar_spc   <- sqrt(diag( vcovHC(ols3_binar_spc) ))
+
+ols3_binar_spbe <- lm(won_board_ind ~ act_sp_betw+oth_sp_betw+log_top20_w_norm_spr +exit_s_board+exit_s_proxy+ log_active.activist_norm_weight+poison_pill+age+log(size)+leverage+mtb+short_term, data = short.data.compust)
+re_ols3_binar_spbe  <- sqrt(diag( vcovHC(ols3_binar_spbe) ))
+
+ols3_binar_sbo <- lm(won_board_ind ~ act_sp_bon+oth_sp_bon+log_top20_w_norm_spr +exit_s_board+exit_s_proxy+ log_active.activist_norm_weight+poison_pill+age+log(size)+leverage+mtb+short_term, data = short.data.compust)
+re_ols3_binar_sbe   <- sqrt(diag( vcovHC(ols3_binar_sbo) ))
+
+
+ols3_classified_sic <- lm(success_of_stated_obj ~ oth_s_clos+log_top20_w_norm_spr +exit_s_board+exit_s_proxy+ log_active.activist_norm_weight+poison_pill+age+log(size)+leverage+mtb+short_term, data = short.data.compust)
+re_ols3_classified_sic   <- sqrt(diag( vcovHC(ols3_classified_sic) ))
+
+ols3_classified_sibe <- lm(success_of_stated_obj ~ oth_s_betw+log_top20_w_norm_spr +exit_s_board+exit_s_proxy+ log_active.activist_norm_weight+poison_pill+age+log(size)+leverage+mtb+short_term, data = short.data.compust)
+re_ols3_classified_sibe   <- sqrt(diag( vcovHC(ols3_classified_sibe) ))
+
+ols3_classified_spc <- lm(success_of_stated_obj ~ oth_sp_clos+log_top20_w_norm_spr +exit_s_board+exit_s_proxy+ log_active.activist_norm_weight+poison_pill+age+log(size)+leverage+mtb+short_term, data = short.data.compust)
+re_ols3_classified_spc   <- sqrt(diag( vcovHC(ols3_classified_spc) ))
+
+ols3_classified_spbe <- lm(success_of_stated_obj ~ oth_sp_betw+log_top20_w_norm_spr +exit_s_board+exit_s_proxy+ log_active.activist_norm_weight+poison_pill+age+log(size)+leverage+mtb+short_term, data = short.data.compust)
+re_ols3_classified_spbe  <- sqrt(diag( vcovHC(ols3_classified_spbe) ))
+
+
+out_centr = capture.output( stargazer(
+                                        # ols3_binar_sic,ols3_binar_sibe,ols3_binar_sibo,
+                                       # ols3_binar_spc, ols3_binar_spbe, ols3_binar_sbo,
+                                       ols3_classified_sic, ols3_classified_sibe, 
+                                       ols3_classified_spc, ols3_classified_spbe,
+          type = "latex",  title = " OLS regressions with centrality measures, robust se", header = FALSE,
+           report = "vct*", digits = 4,
+          omit.stat=c("f", "ser"), font.size = "tiny", float.env="sidewaystable",
+          se=list(
+            # re_ols3_binar_sic,re_ols3_binar_sibe,re_ols3_binar_sibo,
+                  # re_ols3_binar_spc,re_ols3_binar_spbe,re_ols3_binar_sbe,
+                  re_ols3_classified_sic,re_ols3_classified_sibe, 
+                  re_ols3_classified_spc,re_ols3_classified_spbe)
+          ))
+
+
+# note.latex <- "\\multicolumn{9}{l} {\\parbox[t]{12cm}{\\footnotesize \\textit{Notes:} OLS regression  of the equation $Y = \\alpha + \\beta x + \\gamma \\bar{x} +controls+\\epsilon$.The regressions are run using the centrality measures to proxy for persuasiveness of an activist. Centrality is a characteristic of a node that captures the importance of the node position in a network. I use three centrality measures for this analysis. Closeness centrality shows how close each node to any other node. Betweennes centrality captures how well situated a node is in terms of the paths that it lies on. Degree centrality, is defined a the number of links incident to a node. Bonacich centrality is a degree centrality adjusted for the centrality of the neighbours in a network. The centrality measures were computed for both Simple and Spring networks. (By construction, centrality measures for Simple network are identical to the centrality measures of Number of Connections network.) After that I aggregated the centrality measures for each campaign. That is, $act\\_simple\\_closeness$ is a sum of closeness centralities of every active activist participating in a campaign, and $oth\\_simple\\_closeness$ is a sum of closeness centralities of every passive activist that invested in the company but does not participate in a campaign. 
+# Robust standard errors in parenthesis. }} \\\\"
+# out_centr[grepl("Note",out_centr)] <- note.latex
+cat (out_centr, sep = "\n")
+
+
+
+
+```

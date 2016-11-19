@@ -1,0 +1,109 @@
+---
+title: "tables for pres"
+author: "Anya Nakhmurina"
+date: "November 10, 2016"
+output: pdf_document
+fontsize: 12pt
+linestretch: 1.5
+header-includes: 
+  - \usepackage{booktabs}
+  - \usepackage{dcolumn}
+  - \usepackage{caption}
+  - \usepackage{fixltx2e}
+  - \usepackage[flushleft]{threeparttable}
+  - \usepackage{amsmath}
+  - \usepackage{graphics}
+  - \usepackage{float}
+  - \usepackage{longtable}
+  - \usepackage{array}
+  - \usepackage{rotating}
+  - \usepackage{float}
+---
+
+
+```{r, message=F, warning=F, echo=FALSE,  fig.width=14, fig.height=6, }
+suppressWarnings(library("xtable"))
+
+library(dplyr)
+library(xtable)
+library(dplyr)
+library(plyr)
+library(ggplot2)
+library(lmtest)
+library(gridExtra)
+library(reshape)
+library(reshape2)
+library(gridExtra)
+library(Hmisc)
+library(sfsmisc)
+library(gdata)
+library(scales)
+library(xtable)
+library(tables)
+
+library(stargazer, quietly = TRUE)
+library(sandwich, quietly = TRUE)
+library(multiwayvcov, quietly= TRUE)
+library(lfe, quietly = TRUE)
+setwd("~/Networks/Analysis")
+
+load("short.data.compust_2000_2015")
+
+
+log1s_7 <- glm(success_of_stated_obj ~ (top20_number)+exit_s_board+exit_s_proxy, data = short.data.compust, family = "binomial")
+# re_log1s_7    <- sqrt(diag(vcovHC(log1s_7) ))
+re_log1s_7  = sqrt(diag(  cluster.vcov(log1s_7, short.data.compust$type1) ) )
+
+
+reg1 <- lm(success_of_stated_obj ~ top20_number+exit_s_board+exit_s_proxy+log(active.activist.share), data = short.data.compust)
+# se1   <- sqrt(diag(vcovHC(reg1) ))
+se1  = sqrt(diag(  cluster.vcov(reg1, short.data.compust$type1) ) )
+
+reg2 <- lm(success_of_stated_obj~ (log_act_num_con) +exit_s_board+exit_s_proxy+log(active.activist.share)*exit_s_board+log(active.activist.share)*exit_s_proxy, data = short.data.compust)
+se2   <- sqrt(diag( vcovHC(reg2) ))
+# se2  = sqrt(diag(  cluster.vcov(reg2, short.data.compust$type1) ) )
+
+reg3 <- lm(success_of_stated_obj~ log_top20_share_nw_s+ log(active.activist.share) +exit_s_board+exit_s_proxy+poison_pill+age+log(size)+leverage+mtb, data = short.data.compust)
+se3   <- sqrt(diag( vcovHC(reg3) ))
+# se3  = sqrt(diag(  cluster.vcov(reg3, short.data.compust$type1) ) )
+
+reg4 <- lm(success_of_stated_obj~ log_top20_share_nw_spr +exit_s_board+exit_s_proxy+ log(active.activist.share)+poison_pill+age+log(size)+leverage+mtb, data = short.data.compust)
+se4   <- sqrt(diag( vcovHC(reg4) ))
+# se4  = sqrt(diag(  cluster.vcov(reg4, short.data.compust$type1) ) )
+
+reg5 <- lm(success_of_stated_obj~ log_top20_w_norm_s+log_active.activist_norm_weight +exit_s_board+exit_s_proxy+poison_pill+age+log(size)+leverage+mtb, data = short.data.compust)
+se5   <- sqrt(diag( vcovHC(reg5) ))
+# se5  = sqrt(diag(  cluster.vcov(reg5, short.data.compust$type1) ) )
+
+reg6 <- lm(success_of_stated_obj~ log_top20_w_norm_spr +exit_s_board+exit_s_proxy+ log_active.activist_norm_weight+poison_pill+age+log(size)+leverage+mtb, data = short.data.compust)
+se6   <- sqrt(diag( vcovHC(reg6) ))
+# se6  = sqrt(diag(  cluster.vcov(reg6, short.data.compust$type1) ) )
+
+
+reg7 <- lm(success_of_stated_obj~ log_top20_w_sd_s+log_active.activist_sd_weight +exit_s_board+exit_s_proxy+poison_pill+age+log(size)+leverage+mtb, data = short.data.compust)
+se7   <- sqrt(diag( vcovHC(reg7) ))
+# se7  = sqrt(diag(  cluster.vcov(reg7, short.data.compust$type1) ) )
+
+reg8 <- lm(success_of_stated_obj~ log_top20_w_sd_spr +exit_s_board+exit_s_proxy+ log_active.activist_sd_weight+poison_pill+age+log(size)+leverage+mtb, data = short.data.compust)
+se8   <- sqrt(diag( vcovHC(reg8) ))
+# se8  = sqrt(diag(  cluster.vcov(reg8, short.data.compust$type1) ) )
+
+ols3_output = capture.output(stargazer(reg1, reg2, reg3, reg4, reg5,reg6,reg7,reg8,
+                                       type = "latex",  
+                                       title = "Basic spillower OLS regressions with robust standard errors",
+                                       font.size = "tiny", float.env="sidewaystable",header = FALSE,
+                                       omit.stat=c("f", "ser"),
+                                        report = "vct*",
+                                       digits = 4,
+                                       se=list(se1, se2,se3,se4,se5,
+                                               se6,se7,se8 )))
+
+# 
+note.latex <- "\\multicolumn{9}{l} {\\parbox[t]{14cm}{ \\textit{Notes:} OLS regression  of the equation $Y = \\alpha + \\beta x + \\gamma \\bar{x} +controls+\\epsilon$.
+ \\textit{won\\_brep\\_dummy} is an indicator variable equal to 1 when at least 1 activist nominee was elected to the board.\\textit{success\\_of\\_stated\\_obj} is an indicator of fulfillment of activists' demands.  \\textit{active.activist.size} correponds to the total assets of an activist group, computed from 13F filings.   \\textit{activist.size.vweghted} is the sum of all the company's activists' assets weighted by the share of investments in the company. \\textit{activist.size.average} is an average of total assets of company's activists. Activist investor is defined as any investor that appeared in SharkWatch database at least once. \\textit{size} is the market value of the company. \\textit{age} is the age of the company. \\textit{leverage} is the leverage of the company.  Robust standard errors in parenthesis.  }} \\\\"
+ols3_output[grepl("Note",ols3_output)] <- note.latex
+cat (ols3_output, sep = "\n")
+
+
+```
+
