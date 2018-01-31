@@ -1,0 +1,106 @@
+---
+# title: "Activist paper preliminary output"
+# author: "Anya Nakhmurina"
+fontsize: 11pt
+linestretch: 1.5
+# date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: pdf_document
+header-includes: 
+  - \usepackage{booktabs}
+  - \usepackage{dcolumn}
+  - \usepackage{caption}
+  - \usepackage{fixltx2e}
+  - \usepackage[flushleft]{threeparttable}
+  - \usepackage{amsmath}
+  - \usepackage{graphics}
+  - \usepackage{float}
+  - \usepackage{longtable}
+  - \usepackage{array}
+  - \usepackage{rotating}
+  - \usepackage{float}
+  - \usepackage{textpos}
+
+---
+
+
+\section{Appendix II}
+\setcounter{page}{34}
+
+\footnotesize
+\singlespacing
+
+
+\begin{center}
+  \begin{longtable}{p{2.6cm} p{8cm} p{0.4cm} p{0.4cm}p{0.4cm} }
+		\caption{\footnotesize  Summary of events by activists' stated goals. This table provides the summary of activists' campaigns categorized by activists' stated objectives. The sample consists of 362 activist campaigns over 2000-2015. The demands were manually classified into the same categories as in Brav et al. (2008). The first column corresponds to a broad demand category. The second column narrows the activists' objective down to a more narrow category. The third colums counts a number of occurences of earch objective, the fourth column correcponds to share of such occurences and the fifth column to the percent of successful successful realizations of such objectives. Number of occurences and \% of Successes do not sum to 362 and 100\% correspondigly because each campaign can have multiple objectives.} \\
+		 \hline 
+		 \multicolumn{1}{l}{Category} & 		 \multicolumn{1}{l}{Activist Objective} & \multicolumn{1}{l}{Num. events} & \multicolumn{1}{l}{\% Sample}  & \multicolumn{1}{l}{\% Success} \\
+		\hline \hline 
+	\input{"D:/Dropbox/Activist paper/Analysis/new_code/tables/sum.table_tex_short.tex"}
+	\hline \hline
+   \end{longtable}
+\end{center}
+
+
+
+\begin{center}
+  \begin{longtable}{p{5cm} p{2cm} p{2cm}p{2cm}p{2cm} }
+		\caption{\footnotesize Sussess rate by stage. This table provides the breakdown of stages at which the campaign is terminated. } \\
+		 \hline \\[0.2ex]
+\multicolumn{1}{l}{Exit after} & \multicolumn{1}{l}{Num.campaigns} & \multicolumn{1}{l}{\% Sample} & \multicolumn{1}{l}{Num. Successes} & \multicolumn{1}{l}{\% Successes} \\
+		\hline \hline 
+	\input{"D:/Dropbox/Activist paper/Analysis/new_code/tables/success_stage_merged_tex.tex"}
+	\hline \hline
+   \end{longtable}
+\end{center}
+
+
+\newpage 
+\fontsize{10}{10}\selectfont
+\begin{center}\scriptsize
+  \begin{longtable}{p{2.5cm} p{4.3cm} p{1cm}p{1cm}p{1.1cm}p{1cm}p{1cm}p{1cm}p{1cm} }
+		\caption{\scriptsize  Descriptive statistics. This table provides summary statistics on the variables used in preliminary analysis. The variables are grouped by type. \textit{Success of stated goals} is an indicator of fulfillment of activist's demands. \textit{Won board seat(s)} is an indicator of activist's sccess in seeking board representation.  \textit{Perc. activist ownership} corresponds to the aggregate percentage owned by activists.  \textit{Import. activist ownership} is importance of target to the activist. Importance is defined as $\frac{Share - min\{Share\}}{\max\{Share\} - \min\{Share\}}$.  \textit{Num. campaigns by activist} is total number of campaigns that activist was involved in the sample.  \textit{Num. large investors} is the number of investors that fall into top 5\% holding percentile and have shares in the target. \textit{Num. activist connections} is total number of connections that activist has with large investors in the target. \textit{Simple con. weighted by perc.} corresponds to the simple strength of connection weighted by large investor's ownership in the target and aggregated across large investors.\textit{RI con. weighted by perc.} corresponds to the relative influence strength of connection weighted by large investor's ownership in the target and aggregated across large investors. \textit{Simple con. weighted by import.}  corresponds to the simple strength of connection weighted the importance of target to large investors and aggregated across large investors. \textit{RI con. weighted by import.} corresponds to the relative influence strength of connection weighted the importance of target to large investors and aggregated across large investors. \textit{Perc. large ownership} is aggregate percentage of the target owned by large investors. \textit{Simple closeness centrality} is a closeness centrality of activist computed with simple network. \textit{RI closeness centrality} is a closeness centrality of activist computed with relative influence network. \textit{Simple betweenness centrality} is a betweenness centrality of activist computed with simple network. \textit{RI betweenness centrality} is a betweenness centrality of activist computed with relative influence network. \textit{Simple strength} is a strength of connection between activist and passive investor in the  simple network. \textit{RI strength} is a strength of connection between activist and passive investor in the relative influence network. \textit{Market capitalization} is market capitalization of the target at the start of campaign. \textit{Poison pill} is an indicator that the firm had poison pill prior to the campaign or adopted it in response to the campaign.   \textit{Firm age} is the age of the target. \textit{Leverage} is the long-term leverage of the target firm. \textit{MTB} is market-to-book value of the target firm at the start of the campaign. \textit{ROA} is return-on-assets of the target at the start of the campaign.  \textit{Short term objective} is a dummy equal to one if activist's demands include payout of divideds, share repurchase programs or sale of the company.  \textit{Exit after board demands} is a dummy which is equal to one if the campaign ends with activist's demands and does not go to proxy fight. \textit{Exit after proxy fight} is an indicator that proxy fight happened over the campaign.  } \\
+		\hline \hline 
+		 \multicolumn{1}{l}{Variable type} & \multicolumn{1}{l}{Variable} & \multicolumn{1}{l}{mean}  & \multicolumn{1}{l}{sd} & \multicolumn{1}{l}{min} & \multicolumn{1}{l}{p25}& \multicolumn{1}{l}{median} & \multicolumn{1}{l}{p75} & \multicolumn{1}{l}{max}\\ \hline \\[0.2ex]
+	\input{"D:/Dropbox/Activist paper/Analysis/new_code/tables/short_summary_tex.tex"}
+	\hline \hline
+   \end{longtable}
+\end{center}
+
+
+	 
+	 
+	 \begin{center}
+	 	\begin{sidewaystable}[p]\fontsize{2}{3}\selectfont
+	 		\caption{\scriptsize Correlation table.  \textit{Success of stated goals} is an indicator of fulfillment of activist's demands. \textit{Won board seat(s)} is an indicator of activist's sccess in seeking board representation.  \textit{Perc. activist ownership} corresponds to the aggregate percentage owned by activists.  \textit{Import. activist ownership} is importance of target to the activist. Importance is defined as $\frac{Share - min\{Share\}}{\max\{Share\} - \min\{Share\}}$.  \textit{Num. campaigns by activist} is total number of campaigns that activist was involved in the sample.  \textit{Num. large investors} is the number of investors that fall into top 5\% holding percentile and have shares in the target. \textit{Num. activist connections} is total number of connections that activist has with large investors in the target. \textit{Simple con. weighted by perc.} corresponds to the simple strength of connection weighted by large investor's ownership in the target and aggregated across large investors.\textit{RI con. weighted by perc.} corresponds to the relative influence strength of connection weighted by large investor's ownership in the target and aggregated across large investors. \textit{Simple con. weighted by import.}  corresponds to the simple strength of connection weighted the importance of target to large investors and aggregated across large investors. \textit{RI con. weighted by import.} corresponds to the relative influence strength of connection weighted the importance of target to large investors and aggregated across large investors. \textit{Perc. large ownership} is aggregate percentage of the target owned by large investors. \textit{Simple closeness centrality} is a closeness centrality of activist computed with simple network. \textit{RI closeness centrality} is a closeness centrality of activist computed with relative influence network. \textit{Simple betweenness centrality} is a betweenness centrality of activist computed with simple network. \textit{RI betweenness centrality} is a betweenness centrality of activist computed with relative influence network. \textit{Simple strength} is a strength of connection between activist and passive investor in the  simple network. \textit{RI strength} is a strength of connection between activist and passive investor in the relative influence network. \textit{Market capitalization} is market capitalization of the target at the start of campaign. \textit{Poison pill} is an indicator that the firm had poison pill prior to the campaign or adopted it in response to the campaign.   \textit{Firm age} is the age of the target. \textit{Leverage} is the long-term leverage of the target firm. \textit{MTB} is market-to-book value of the target firm at the start of the campaign. \textit{ROA} is return-on-assets of the target at the start of the campaign.  \textit{Short term objective} is a dummy equal to one if activist's demands include payout of divideds, share repurchase programs or sale of the company.  \textit{Exit after board demands} is a dummy which is equal to one if the campaign ends with activist's demands and does not go to proxy fight. \textit{Exit after proxy fight} is an indicator that proxy fight happened over the campaign. }
+	 		\centering \tiny
+	\begin{tabular}{p{3.6cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}p{0.52cm}}
+	 			\hline\hline
+	 			\input{"D:/Dropbox/Activist paper/Analysis/new_code/tables/upper_tex.tex"}
+	 			\hline\hline
+	 		\end{tabular}
+	 	\end{sidewaystable}
+	 \end{center}
+	 
+
+\input{"D:/Dropbox/Activist paper/Analysis/new_code/tables/table_5.tex"}
+\input{"D:/Dropbox/Activist paper/Analysis/new_code/tables/table_6.tex"}
+\input{"D:/Dropbox/Activist paper/Analysis/new_code/tables/table_7.tex"}
+
+\input{"D:/Dropbox/Activist paper/Analysis/new_code/tables/did_alll.tex"}
+
+\clearpage
+\section{Appendix III. Robustness.}
+
+
+\input{"D:/Dropbox/Activist paper/Analysis/new_code/tables/robust_table_5_top10.tex"}
+
+\input{"D:/Dropbox/Activist paper/Analysis/new_code/tables/robust_table_5_top20.tex"}
+
+\input{"D:/Dropbox/Activist paper/Analysis/new_code/tables/robust_logit.tex"}
+\input{"D:/Dropbox/Activist paper/Analysis/new_code/tables/robust_importance.tex"}
+\input{"D:/Dropbox/Activist paper/Analysis/new_code/tables/robust_number.tex"}
+\input{"D:/Dropbox/Activist paper/Analysis/new_code/tables/table14.tex"}
+\input{"D:/Dropbox/Activist paper/Analysis/new_code/tables/robust_centr.tex"}
+\input{"D:/Dropbox/Activist paper/Analysis/new_code/tables/camp_type_clustering.tex"}
+\input{"D:/Dropbox/Activist paper/Analysis/new_code/tables/robust_did.tex"}

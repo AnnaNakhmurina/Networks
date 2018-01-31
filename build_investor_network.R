@@ -1,20 +1,26 @@
+# This file builds investor networks for the period of 2000 -2014
+# In January 2018 I have revisited the network construction and saved them into a different folder. 
+
+
 rm(list=ls())
 gc()
 
 library(data.table)
 
+setwd("D:/Dropbox/Activist paper/Analysis/")
 # First, create a list of funds who are in the top-20% of reporters in each of the reporting periods
 
 load("top20_percent")
 top20_percent = top20_percent[which(!is.na(top20_percent))]
 
+# Load the list of all holdings. (?)
 temp.space <- new.env()
 cusip_all <- get(load("13f_2000_2014_cik_dt", temp.space), temp.space)
 # cusip_all <- get(load("dt_13", temp.space), temp.space)
 rm(temp.space)
 
-cusip_all <- data.frame(cusip_all)
-cusip_all <- cusip_all[rowSums(is.na(cusip_all))<ncol(cusip_all),] #???
+cusip_all <- data.frame( cusip_all )
+cusip_all <- cusip_all[ rowSums( is.na( cusip_all ) ) < ncol( cusip_all ),] #???
 # cusip_all$period <- as.Date(cusip_all$period, "%m-%d-%Y")
 
 load("compustat_short_2000_2014")
@@ -37,6 +43,8 @@ leap_years <- c("2000", "2004", "2008", "2012", "2016")
 
 network_dates <- sort( unique( cusip_all$date )  )
 '%!in%' <- function(x,y)!('%in%'(x,y))
+
+#-------- Build top 20 network --------
 
 for ( nw  in 1:length(network_dates) ){
 
@@ -170,12 +178,12 @@ investor_network = fund_network
 
 name = paste0( "investor_network_top20_", q_to_save, "_", year )
 
-save(investor_network, file= paste0( "C:/Users/anakhmur/Documents/Networks/Analysis/networks/", name ))
+save(investor_network, file= paste0( "D:/Dropbox/Activist paper/Analysis/networks/", name ))
 
 }
 
 
-#-------- Build top 10 network 
+#-------- Build top 10 network ----------
 
 
 load("top10_percent")
@@ -344,16 +352,16 @@ for ( nw  in 1:length(network_dates) ){
   
   name = paste0( "investor_network_top10_", q_to_save, "_", year )
   
-  save(investor_network, file= paste0( "C:/Users/anakhmur/Documents/Networks/Analysis/networks/", name ))
+  save(investor_network, file= paste0( "D:/Dropbox/Activist paper/Analysis/networks/", name ))
   
 }
 
 
-# -------------------Build top 5 network
-
+#-------- Build top 5 network --------
 
 load("top5_percent_old")
-top5_percent = top5_percent[which(!is.na(top5_percent))]
+# load( "top5_percent_new" ) (?)
+top5_percent = top5_percent[ which( !is.na( top5_percent ) ) ]
 
 temp.space <- new.env()
 cusip_all <- get(load("13f_2000_2014_cik_dt", temp.space), temp.space)
@@ -387,7 +395,7 @@ network_dates <- sort( unique( cusip_all$date )  )
 
 for ( nw  in 1:length(network_dates) ){
   
-  nw_date <- network_dates[nw]
+  nw_date <- network_dates[ nw ]
   print(nw_date)
   # SET CURRENT PERIOD!!!!! (the period of network formation )
   current = as.Date( nw_date, "%Y-%m-%d")
@@ -395,13 +403,13 @@ for ( nw  in 1:length(network_dates) ){
   quarter <- substr(nw_date, 6, 10)
   year <- substr(nw_date, 1, 4)
   
-  if (year %in% leap_years){beg_p_q <- corr$beg_period_leaps[which(quarters == quarter)]}else{
-    beg_p_q <- corr$beg_periods[which(quarters == quarter)]
+  if (year %in% leap_years){ beg_p_q <- corr$beg_period_leaps[ which( quarters == quarter ) ] }else{
+    beg_p_q <- corr$beg_periods[ which( quarters == quarter ) ]
   }
   
-  end_p_q <- corr$end_periods[which(quarters == quarter)]
+  end_p_q <- corr$end_periods[ which( quarters == quarter ) ]
   
-  beg_date <- paste0(year,"-", beg_p_q)
+  beg_date <- paste0( year,"-", beg_p_q )
   if( end_p_q == "01-31" ){
     year_end = as.numeric(year)+1
     end_date <- paste0(year_end,"-", end_p_q)
@@ -517,22 +525,24 @@ for ( nw  in 1:length(network_dates) ){
   
   name = paste0( "investor_network_top5_new_", q_to_save, "_", year )
   
-  save(investor_network, file= paste0( "C:/Users/anakhmur/Documents/Networks/Analysis/networks/", name ))
+  save(investor_network, file= paste0( "D:/Dropbox/Activist paper/Analysis/networks/", name ))
   
 }
 
 
 
-#----------------------------------Do summary statistics table
+#----------------------------------Do summary statistics table -------
 
 # read all funds networks 
 rm(list=ls())
 gc()
 
 # Create summary statistics regarding the fund networks
-nw_files = list.files(path = "C:/Users/anakhmur/Documents/Networks/Analysis/networks", pattern = "investor_network_top5")
+# nw_files = list.files(path = "D:/Dropbox/Activist paper/Analysis/networks", pattern = "investor_network_top5")
+# nw_files = list.files(path = "D:/Dropbox/Activist paper/Analysis/networks", pattern = "investor_network_top10")
+nw_files = list.files(path = "D:/Dropbox/Activist paper/Analysis/networks", pattern = "investor_network_top20")
 
-setwd("~/Networks/Analysis/networks")
+setwd("D:/Dropbox/Activist paper/Analysis/networks/")
 fund_n <- data.frame()
 for (file in nw_files){
   print(file)
@@ -563,9 +573,15 @@ names(out) <- c("name", "mean","sd","min", "25%", "median%", "75%", "max")
 # save(networks_summary_2015, file="networks_summary_2015")
 
 investor_networks_summary_all = out
-save(investor_networks_summary_all, file="investor_networks_summary_all_top5")
+# save(investor_networks_summary_all, file="D:/Dropbox/Activist paper/Analysis/investor_networks_summary_all_top5")
+# save(investor_networks_summary_all, file="D:/Dropbox/Activist paper/Analysis/investor_networks_summary_all_top10")
+save(investor_networks_summary_all, file="D:/Dropbox/Activist paper/Analysis/investor_networks_summary_all_top20")
 
 #------------------------------------ADD CENTRALITY MEASURES TO THE FUND NETWORK DATA--------------------------------------
+
+rm(list=ls())
+gc()
+
 
 library(igraph)
 library(statnet)
@@ -574,67 +590,69 @@ library(sna)
 
 centrality_table = function ( fund_network ){
   
-  simple = fund_network[c("activist","top20_investor")]
-  connections_number = fund_network[c("activist","top20_investor","num_con")]
-  spring = fund_network[c("activist","top20_investor","s")]
+  simple = fund_network[ c( "activist", "top5_investor" ) ]
+  connections_number = fund_network[ c( "activist", "top5_investor", "num_con" )]
+  spring = fund_network[ c( "activist","top5_investor","s" ) ]
   
-  net_simple <- graph_from_data_frame(d=simple, directed=F) 
-  net_connections_number  <- graph_from_data_frame(d=connections_number, directed=F) 
-  net_spring <- graph_from_data_frame(d=spring, directed=T) 
+  net_simple <- graph_from_data_frame( d = simple, directed = F ) 
+  net_connections_number  <- graph_from_data_frame( d = connections_number, directed = F ) 
+  net_spring <- graph_from_data_frame( d=spring, directed=T )  # !!!!!!!CHanged to T
   
-  simple_adjnet = as_adjacency_matrix(net_simple)
-  con_adjnet = as_adjacency_matrix(net_connections_number)
-  con_spring = as_adjacency_matrix(net_spring)
+  simple_adjnet = as_adjacency_matrix( net_simple )
+  con_adjnet = as_adjacency_matrix( net_connections_number )
+  con_spring = as_adjacency_matrix( net_spring )
   
-  simple_am = as.matrix(simple_adjnet)
-  con_am = as.matrix(simple_adjnet)
-  spring_am = as.matrix(con_spring)
+  simple_am = as.matrix( simple_adjnet )
+  con_am = as.matrix( simple_adjnet )
+  spring_am = as.matrix( con_spring )
   
-  simple_degree=degree(simple_am)
-  con_degree = degree(con_am)
-  spring_degree = degree(spring_am)
+  simple_degree = degree( simple_am )
+  con_degree = degree( con_am )
+  spring_degree = degree( spring_am )
   
-  names(simple_degree)=names(V(net_simple))
-  names(con_degree)=names(V(net_connections_number))
-  names(spring_degree)=names(V(net_spring))
+  names( simple_degree ) = names( V( net_simple ) )
+  names( con_degree ) = names( V( net_connections_number  ) )
+  names( spring_degree ) = names( V( net_spring ) )
   
-  simple_between=betweenness(simple_am)
-  con_between=betweenness(con_am)
-  spring_between=betweenness(spring_am)
+  simple_between = betweenness( simple_am )
+  con_between = betweenness( con_am )
+  spring_between = betweenness( spring_am )
   
-  names(simple_between)=names(V(net_simple))
-  names(con_between)=names(V(net_connections_number))
-  names(spring_between)=names(V(net_spring))
+  names( simple_between ) = names( V( net_simple ) )
+  names( con_between ) = names( V( net_connections_number ) )
+  names( spring_between ) = names( V( net_spring ) )
   
-  simple_clos=closeness(simple_am)
-  con_clos=closeness(con_am)
-  spring_clos=closeness(spring_am)
+  simple_clos = closeness( simple_am )
+  con_clos = closeness( con_am )
+  spring_clos = closeness( spring_am )
   
-  names(simple_clos)=names(V(net_simple))
-  names(con_clos)=names(V(net_connections_number))
-  names(spring_clos)=names(V(net_spring))
+  names( simple_clos ) = names( V( net_simple ))
+  names( con_clos ) = names( V( net_connections_number ) )
+  names( spring_clos ) = names( V( net_spring ) )
   
-  simple_bonacich=power_centrality(net_simple, nodes = V(net_simple), loops = FALSE, exponent = 1,
-                                   rescale = FALSE, tol = 1e-07, sparse = TRUE)
-  con_bonacich=power_centrality(net_connections_number, nodes = V(net_connections_number), loops = FALSE, exponent = 1,
-                                rescale = FALSE, tol = 1e-07, sparse = TRUE)
-  spring_bonacich=power_centrality(net_spring, nodes = V(net_spring), loops = FALSE, exponent = 1,
-                                   rescale = FALSE, tol = 1e-07, sparse = TRUE)
+  simple_bonacich = power_centrality( net_simple, nodes = V( net_simple ), loops = FALSE, exponent = 1,
+                                      rescale = FALSE, tol = 1e-07, sparse = TRUE )
+  con_bonacich = power_centrality( net_connections_number, nodes = V( net_connections_number ), loops = FALSE, exponent = 1,
+                                    rescale = FALSE, tol = 1e-07, sparse = TRUE )
+  spring_bonacich = power_centrality( net_spring, nodes = V( net_spring ), loops = FALSE, exponent = 1,
+                                      rescale = FALSE, tol = 1e-07, sparse = TRUE)
   
   
-  summary = cbind(simple_degree,simple_clos,simple_between,simple_bonacich,
-                  con_degree,con_between,con_clos,con_bonacich,
-                  spring_degree,spring_between,spring_clos,spring_bonacich)
-  summary= as.data.frame(summary)
-  summary$cik = rownames(summary)
-  rownames(summary) <- NULL
-  return(summary)
+  summary = cbind(  simple_degree, simple_clos, simple_between,simple_bonacich,
+                    con_degree, con_between, con_clos, con_bonacich,
+                    spring_degree, spring_between, spring_clos, spring_bonacich
+                    )
+  
+  summary = as.data.frame( summary )
+  summary$cik = rownames( summary )
+  rownames( summary ) <- NULL
+  return( summary )
 }
 
 
-nw_files = list.files(path = "C:/Users/anakhmur/Documents/Networks/Analysis/networks", pattern = "investor_network")
-file=nw_files[1]
-setwd("~/Networks/Analysis/networks")
+nw_files = list.files(path = "D:/Dropbox/Activist paper/Analysis/networks", pattern = "investor_network_top5_new")
+file=nw_files[2]
+setwd("D:/Dropbox/Activist paper/Analysis/networks")
 
 # Create corespondence table 
 
@@ -644,24 +662,24 @@ corr <- data.frame(quarter, period)
 
 centrality_summary = data.frame()
 
-for (file in nw_files){
+for ( file in nw_files ){
   
-  q = substr(file, 18,19)
-  y = substr(file, 21, 24)
-  qc = corr$period[which(corr$quarter == q)]
+  q = substr(file, 27, 28 )
+  y = substr(file, 30, 33 )
+  qc = corr$period[ which( corr$quarter == q ) ]
   period = paste0(qc,"-",y)
   
-  load(file)
-  summary_1q = centrality_table(investor_network)
+  load( paste0("D:/Dropbox/Activist paper/Analysis/networks/", file) )
+  summary_1q = centrality_table( investor_network )
   summary_1q$period = period
-  print(c(file,period))
+  print( c( file, period) )
   centrality_summary  = rbind(centrality_summary, summary_1q)
   
 }
 
-centrality_summary$date = as.Date(centrality_summary$period, "%m-%d-%Y")
+centrality_summary$date = as.Date( centrality_summary$period, "%m-%d-%Y")
 investor_centrality_summary = centrality_summary
-setwd("~/Networks/Analysis")
+# setwd("~/Networks/Analysis")
 
 names( investor_centrality_summary ) = c("inv_simple_degree", "inv_simple_clos", "inv_simple_between", 
                                          "inv_simple_bonacich", "inv_con_degree", "inv_con_between",
@@ -669,16 +687,16 @@ names( investor_centrality_summary ) = c("inv_simple_degree", "inv_simple_clos",
                                          "inv_spring_between", "inv_spring_clos", "inv_spring_bonacich",
                                           "cik", "period","date"  )
 
-save(investor_centrality_summary, file="investor_centrality_summary")
+save(investor_centrality_summary, file="D:/Dropbox/Activist paper/Analysis/investor_centrality_summary")
 
 
-# -------------------- ADD CENTRALITIES TO THE 13f DATA (MAKE SURE TO RUN THIS CODE AFTER THE FUND CENTRALITIES ARE ADDED)
+# -------------------- ADD CENTRALITIES TO THE 13f DATA (MAKE SURE TO RUN THIS CODE AFTER THE FUND CENTRALITIES ARE ADDED)------
 
 rm(list=ls())
 gc()
 
 library(data.table)
-setwd("~/Networks/Analysis")
+setwd("D:/Dropbox/Activist paper/Analysis")
 
 load("13f_2000_2014_w_centr")
 
@@ -687,11 +705,13 @@ load("investor_centrality_summary")
 cik_13f = merge( cik_13f, investor_centrality_summary, by =c("cik", "date", "period") )
 # save(cik_13f, file="13f_2000_2014_w_both_centr")
 # save(cik_13f, file="13f_2000_2014_w_both_centr_new")
-#
+# save(cik_13f, file="13f_2000_2014_w_both_centr_new_march")
+save(cik_13f, file="13f_2000_2014_w_both_centr_new_january")
+
 # load("13f_2000_2014_w_both_centr")
 # load("13f_2000_2014_w_both_centr_new")
-
-library(data.table)
+# load("13f_2000_2014_w_both_centr_new_march")
+load( "13f_2000_2014_w_both_centr_new_january" )
 
 # length 1510738
 
@@ -705,6 +725,8 @@ cik_13f = cik_13f[ , norm_weight := (share - min(share))/(max(share) - min(share
 
 # save(cik_13f, file="13f_2000_2014_w_both_centr")
 # save(cik_13f, file="13f_2000_2014_w_both_centr_new")
+# save(cik_13f, file="13f_2000_2014_w_both_centr_new_march")
+save(cik_13f, file="13f_2000_2014_w_both_centr_new_january")
 
 
 # Add centrality data to the cusip ok database

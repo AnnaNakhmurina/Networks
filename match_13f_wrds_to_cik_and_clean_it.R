@@ -6,7 +6,7 @@
 
 rm(list=ls())
 gc()
-setwd("~/Networks/Analysis")
+setwd("C:/Users/anakhmur/Dropbox/Activist paper/Analysis")
 
 f <- read.csv("13f_2000_2007_wrds.csv")
 f <- read.csv("13f_20014_wrds.csv")
@@ -294,14 +294,15 @@ save(match_cik_13f_wrds_final, file="match_cik_13f_wrds_final")
 # Match the 13f data with ciks. Output file is 13f_2000_2007_cik
 rm(list=ls())
 gc()
-setwd("~/Networks/Analysis")
+setwd("C:/Users/anakhmur/Dropbox/Activist paper/Analysis")
 
 load("match_cik_13f_wrds_final")
 names(match_cik_13f_wrds_final) =c("mgrname", "cik","mgrno")
 
 # f <- read.csv("13f_2000_2007_wrds.csv")
 # f <- read.csv("13f_2008_2013_wrds.csv")
-f <- read.csv("13f_20014_wrds.csv")
+# f <- read.csv("13f_20014_wrds.csv")
+
 f = merge(match_cik_13f_wrds_final, f, by="mgrname")
 f$date = as.Date( as.character( f$rdate  ) , "%Y%m%d"  )
 # fd$cusip6 <- substr(fd$cusip, 1,6)
@@ -320,39 +321,43 @@ correct_cusips = data.frame(old_cusip, correct_cusip)
 cik_13f = merge(f, correct_cusips, by.x ="cusip", by.y="old_cusip")
 cik_13f$cusip6 <- substr(cik_13f$correct_cusip, 1,6)
 
+cik_13f$value  = cik_13f$prc*cik_13f$shares/(1000000)
+cik_13f = cik_13f[which(!is.na(cik_13f$value)),]
+library(data.table)
+cik_13f = as.data.table(cik_13f)
+cik_13f <-cik_13f[, total.value := sum( as.numeric(value) ), by = list(cik, rdate)]
 
-save(cik_13f, file="13f_2014_cik")
+# save(cik_13f, file="13f_2000_2007_cik")
+# save(cik_13f, file="13f_2008_2013_cik")
+# save(cik_13f, file="13f_2014_cik")
+
+
+# ---- Finally, aggregate all data from  2000 to 2014
+
+rm(list=ls())
+gc()
+setwd("C:/Users/anakhmur/Dropbox/Activist paper/Analysis")
+
+load("13f_2000_2007_cik")
+fd = cik_13f
 load("13f_2008_2013_cik")
 fd = rbind(cik_13f, fd)
-load("13f_2000_2007_cik")
+load("13f_2014_cik")
 cik_13f = rbind(cik_13f, fd)
 
 save(cik_13f, file="13f_2000_2014_cik")
-
-# ---- Finally, aggregate all data from  2000 to 2014
-library(data.table)
-# load("13f_2000_2007_cik")
-# load("13f_2008_2013_cik")
-load("13f_2014_cik")
-# Value
-cik_13f$value  = cik_13f$prc*cik_13f$shares/(1000000)
-cik_13f = cik_13f[which(!is.na(cik_13f$value)),]
-cik_13f = as.data.table(cik_13f)
-cik_13f <-cik_13f[, total.value := sum( as.numeric(value) ), by = list(cik, rdate)]
-# cik_13f = as.data.frame(cik_13f)
-
-save(cik_13f, file="13f_2000_2007_cik")
-
-# save(cik_13f, file="13f_2000_2014_cik")
 
 
 #----------------- Add the set of variables needed for the network formation
 
 rm(list=ls())
 gc()
-setwd("~/Networks/Analysis")
+setwd("C:/Users/anakhmur/Dropbox/Activist paper/Analysis")
 
-# load("13f_2000_2014_cik")
+# load("13f_2000_2007_cik")
+# load("13f_2008_2013_cik")
+load("13f_2014_cik")
+
 library(data.table)
 # Sum over all cusip6 investments to get rid of ambuguity
 
@@ -364,12 +369,23 @@ dt$sole <- as.numeric(dt$sole)
 dt$shared <- as.numeric(dt$shared)
 dt$no <- as.numeric(dt$no)
 # dt$shrout1 <- as.numeric(dt$shrout1)
-dt_14= dt[,  list(value.mln.all = sum(value),share.amt =sum(shrout1),sole =sum(sole), 
-                                  shared=sum(shared), no=sum(no) ), 
-                                  by=c(names, "cik")]
-# save(dt_14, file="dt_14")
+# dt_07= dt[,  list(value.mln.all = sum(value),share.amt =sum(shrout1),sole =sum(sole), 
+#                   shared=sum(shared), no=sum(no) ), 
+#           by=c(names, "cik")]
+# 
 # save(dt_07, file="dt_07")
-save(dt_13, file="dt_13")
+
+# dt_13= dt[,  list(value.mln.all = sum(value),share.amt =sum(shrout1),sole =sum(sole),
+#                   shared=sum(shared), no=sum(no) ),
+#           by=c(names, "cik")]
+# save(dt_13, file="dt_13")
+
+# dt_14= dt[,  list(value.mln.all = sum(value),share.amt =sum(shrout1),sole =sum(sole),
+#                   shared=sum(shared), no=sum(no) ),
+#           by=c(names, "cik")]
+# save(dt_14, file="dt_14")
+
+
 
 load("dt_07")
 load("dt_13")

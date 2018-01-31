@@ -129,7 +129,7 @@ top20_percent = unique (top20_percent)
 save(top20_percent, file="top20_percent_new")
 
 
-#-------------------Do top 10
+#-------------------Do top 10----------------------
 
 
 setwd("~/Networks/Analysis")

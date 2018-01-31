@@ -191,4 +191,40 @@ clean.shark.final_age <- rbind( subset, non_subset)
 
 clean.shark.final = clean.shark.final_age
 
+activist_names = (clean.shark.final$activist.name)
+
+
+activist_appearance_number = function( name ){ 
+  
+  number= nrow( clean.shark.final[which(clean.shark.final$activist.name == name),] )
+  return(number)
+  
+}
+
+numbers = do.call( c, lapply(activist_names, activist_appearance_number) )
+
+clean.shark.final$activist_appearance_number = numbers
+
 save(clean.shark.final, file="clean.shark.final_age")
+
+load("short.data.compust_2000_2015")
+survived_campaigns = short.data.compust$campaign.id
+
+load("clean.shark.final_age")
+
+survived_shark = unique( clean.shark.final[which(clean.shark.final$campaign_id %in% survived_campaigns),])
+survived_shark = unique( survived_shark[, c("campaign_id", "activist.name")])
+
+survived_activist_appearance_number = data.frame()
+for(campaign.id in survived_campaigns){
+  
+  name = unique( survived_shark$activist.name[which(survived_shark$campaign_id == campaign.id)]) 
+  surv_act_appearance_number= nrow( survived_shark[which(survived_shark$activist.name == name),] )
+  out = c(campaign.id,  surv_act_appearance_number)
+  survived_activist_appearance_number = rbind(survived_activist_appearance_number, out)
+  
+}
+
+names(survived_activist_appearance_number) = c("campaign.id", "surv_act_appearance_number")
+survived_activist_appearance_number = unique(survived_activist_appearance_number)
+save(survived_activist_appearance_number, file="survived_activist_appearance_number")

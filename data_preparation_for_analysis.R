@@ -1,6 +1,10 @@
+
 rm(list=ls())
-setwd("~/Networks/Analysis")
+
+setwd("D:/Dropbox/Activist paper/Analysis")
 load("clean.shark.final_age")
+
+# Count number of appearances of the activist
 
 
 classified <- read.csv("classified.2015.csv")
@@ -39,6 +43,8 @@ cusip_ok.short <- cusip_ok.short[rowSums(is.na(cusip_ok.short))<ncol(cusip_ok.sh
 
 shark.sub.2015 <- shark.sub.2015[rowSums(is.na(shark.sub.2015))<ncol(shark.sub.2015),]
 
+campaign_type_match = read.csv("campaign_type_match.csv")
+
 # We are only going to need filings that concern a list of given companies as a first step
 cusip.list <- unique(shark.sub.2015$cusip6)
 activist.list <- unique(clean.shark.final$cik)
@@ -64,33 +70,36 @@ short.data <- data.frame()
 
 for (i in 1: length(cusip.list) ){
   
-  cusip6 <- cusip.list[i]
-  subsh <- shark.sub.2015[shark.sub.2015$cusip6 == cusip6, ]
-  subsh <- subsh[rowSums(is.na(subsh))<ncol(subsh),]
+  cusip6 <- cusip.list[ i ]
+  subsh <- shark.sub.2015[ shark.sub.2015$cusip6 == cusip6, ]
+  subsh <- subsh[ rowSums( is.na(subsh)) < ncol(subsh), ]
   
   if(nrow(subsh)>0){
-    for( campaign in 1:length(unique(subsh$campaign_id))  ) {
+    for( campaign in 1:length( unique( subsh$campaign_id ) )  ) {
       
-      campaign.id = unique(subsh$campaign_id)[campaign]
+      campaign.id = unique( subsh$campaign_id )[ campaign ]
       
       subsh.camp <- subsh[subsh$campaign_id == campaign.id, ]
       subsh.camp <- subsh.camp[rowSums(is.na(subsh.camp))<ncol(subsh.camp),]
       age_activist = mean( subsh.camp$age_activist , na.rm=T )
-      active.activist.list <-  unique(subsh.camp$cik)
-      passive.activist.list <- setdiff(activist.list, active.activist.list)
+      active.activist.list <-  unique( subsh.camp$cik )
+      passive.activist.list <- setdiff( activist.list, active.activist.list )
       
-      start <- unique(subsh.camp$announce_date)
-      end <- unique(subsh.camp$end_date)
+      start <- unique( subsh.camp$announce_date )
+      end <- unique( subsh.camp$end_date )
+      
+      dissident_group_ownership_percent = max(unique(subsh$dissident_group_ownership_percent))
       
       # Find the quarter range in which the campaign fall in
       
-      sub <- same.cusips_13f[same.cusips_13f$cusip6 == cusip6 ,]
-      year <- sort( unique(sub$date) )
+      sub <- same.cusips_13f[ same.cusips_13f$cusip6 == cusip6 , ]
+      year <- sort( unique( sub$date ) )
       beginning.quarter <- year[ findInterval(start, year) + 1 ]
       ending.quarter <- year[ findInterval(end, year) + 1 ]
       if (is.na(ending.quarter)){ending.quarter = max(year)}
       
       if( !is.na(beginning.quarter) & !is.na(ending.quarter) ){
+        
         # if( !is.na(beginning.quarter) ){
         sub <- sub[ sub$date >= beginning.quarter & sub$date <= ending.quarter,  ]
         # sub <- sub[ sub$date == beginning.quarter ,  ]
@@ -103,9 +112,11 @@ for (i in 1: length(cusip.list) ){
         top20_set = sub[sub$cik %in% top20_percent,]
         active.activist.set <- sub[sub$cik %in% active.activist.list,]
         
+        active_percent = sum(active.activist.set$value.mln.all)/sum( sub$value.mln.all )
+        
         active.activist.number = length ( unique(active.activist.set$cik)  )
         
-        if ( nrow(activist.set) >0 & nrow(active.activist.set) >0 ){
+        if ( nrow(activist.set) > 0 & nrow(active.activist.set) > 0 ){
           
           # if ( nrow(active.activist.set) >0 ){
           print(i)
@@ -132,22 +143,22 @@ for (i in 1: length(cusip.list) ){
           # Now introduce the sizes weighed by the FUND network
           
           # Load the corresponding network
-          period <- substr(beginning.quarter, 6, 10)
-          year <- substr(beginning.quarter, 1, 4)
-          quarter <- corr$quarter[which(corr$period == period)]
+          period <- substr( beginning.quarter, 6, 10 )
+          year <- substr( beginning.quarter, 1, 4 )
+          quarter <- corr$quarter[ which( corr$period == period ) ]
           file = paste0("fund_network_", quarter, "_", year)
-          load(paste0("C:/Users/anakhmur/Documents/Networks/Analysis/networks/", file))
+          load(paste0("D:/Dropbox/Activist paper/Analysis/networks/", file))
           
           # File is going to be called fund_network
           
-          fn <- fund_network[which(fund_network$fund1 %in% active.activist.list),]
+          fn <- fund_network[ which( fund_network$fund1 %in% active.activist.list ), ]
           
           if( nrow(fn) == 0 ) { 
             period <- substr(ending.quarter, 6, 10)
             year <- substr(ending.quarter, 1, 4)
             quarter <- corr$quarter[which(corr$period == period)]
             file = paste0("fund_network_", quarter, "_", year)
-            load(paste0("C:/Users/anakhmur/Documents/Networks/Analysis/networks/", file))
+            load(paste0("D:/Dropbox/Activist paper/Analysis/networks/", file))
             
             fn <- fund_network[which(fund_network$fund1 %in% active.activist.list),]
             }
@@ -172,7 +183,7 @@ for (i in 1: length(cusip.list) ){
           # Now introduce the sizes weighed by the INVESTOR network
           
           file = paste0("investor_network_top20_", quarter, "_", year)
-          load(paste0("C:/Users/anakhmur/Documents/Networks/Analysis/networks/", file))
+          load(paste0("D:/Dropbox/Activist paper/Analysis/networks/", file))
           invn <- investor_network[which(investor_network$activist %in% active.activist.list),]
           
           if( nrow(invn) == 0 ) { 
@@ -180,11 +191,11 @@ for (i in 1: length(cusip.list) ){
             year <- substr(ending.quarter, 1, 4)
             quarter <- corr$quarter[which(corr$period == period)]
             file = paste0("investor_network_top20_", quarter, "_", year)
-            load(paste0("C:/Users/anakhmur/Documents/Networks/Analysis/networks/", file))
+            load(paste0("D:/Dropbox/Activist paper/Analysis/networks/", file))
             invn <- investor_network[which(investor_network$activist %in% active.activist.list),]
           }
           
-          top20 <- sub[sub$cik %in% top20_percent,]
+          top20 <- sub[ sub$cik %in% top20_percent,] 
           
           top20n = merge(top20, invn, by.x="cik", by.y="top20_investor")
           top20_num_con = sum(top20n$num_con)
@@ -203,7 +214,7 @@ for (i in 1: length(cusip.list) ){
           
           
           file = paste0("investor_network_top10_", quarter, "_", year)
-          load(paste0("C:/Users/anakhmur/Documents/Networks/Analysis/networks/", file))
+          load(paste0("D:/Dropbox/Activist paper/Analysis/networks/", file))
           invn <- investor_network[which(investor_network$activist %in% active.activist.list),]
           
           if( nrow(invn) == 0 ) { 
@@ -211,11 +222,11 @@ for (i in 1: length(cusip.list) ){
             year <- substr(ending.quarter, 1, 4)
             quarter <- corr$quarter[which(corr$period == period)]
             file = paste0("investor_network_top10_", quarter, "_", year)
-            load(paste0("C:/Users/anakhmur/Documents/Networks/Analysis/networks/", file))
+            load(paste0("D:/Dropbox/Activist paper/Analysis/networks/", file))
             invn <- investor_network[which(investor_network$activist %in% active.activist.list),]
           }
           
-          top10 <- sub[sub$cik %in% top10_percent,]
+          top10 <- sub[ sub$cik %in% top10_percent, ]
           
           top10n = merge(top10, invn, by.x="cik", by.y="top10_investor")
           top10_num_con = sum(top10n$num_con)
@@ -233,7 +244,7 @@ for (i in 1: length(cusip.list) ){
           
           
           file = paste0("investor_network_top5_new_", quarter, "_", year)
-          load(paste0("C:/Users/anakhmur/Documents/Networks/Analysis/networks/", file))
+          load(paste0("D:/Dropbox/Activist paper/Analysis/networks/", file))
           invn <- investor_network[which(investor_network$activist %in% active.activist.list),]
           
           if( nrow(invn) == 0 ) { 
@@ -241,7 +252,7 @@ for (i in 1: length(cusip.list) ){
             year <- substr(ending.quarter, 1, 4)
             quarter <- corr$quarter[which(corr$period == period)]
             file = paste0("investor_network_top5_new_", quarter, "_", year)
-            load(paste0("C:/Users/anakhmur/Documents/Networks/Analysis/networks/", file))
+            load(paste0("D:/Dropbox/Activist paper/Analysis/networks/", file))
             invn <- investor_network[which(investor_network$activist %in% active.activist.list),]
           }
           
@@ -323,6 +334,27 @@ for (i in 1: length(cusip.list) ){
           top5_sp_bon_inv <- sum(  top5n$inv_spring_bonacich  )
           
           
+          # top20_s_clos_inv_real <- sum(  top20n$inv_simple_clos_inv  )
+          # top20_s_betw_inv_real <- sum(  top20n$inv_simple_between_inv  )
+          # top20_s_bon_inv_real <- sum(  top20n$inv_simple_bonacich_inv  )
+          # top20_sp_clos_inv_real <- sum(  top20n$inv_spring_clos_inv  )
+          # top20_sp_betw_inv_real <- sum(  top20n$inv_spring_between_inv  )
+          # top20_sp_bon_inv_real <- sum(  top20n$inv_spring_bonacich_inv  )
+          # 
+          # top10_s_clos_inv_real <- sum(  top10n$inv_simple_clos_inv  )
+          # top10_s_betw_inv_real <- sum(  top10n$inv_simple_between_inv  )
+          # top10_s_bon_inv_real <- sum(  top10n$inv_simple_bonacich_inv  )
+          # top10_sp_clos_inv_real <- sum(  top10n$inv_spring_clos_inv  )
+          # top10_sp_betw_inv_real <- sum(  top10n$inv_spring_between_inv  )
+          # top10_sp_bon_inv_real <- sum(  top10n$inv_spring_bonacich_inv  )
+          # 
+          # top5_s_clos_inv_real <- sum(  top5n$inv_simple_clos_inv  )
+          # top5_s_betw_inv_real <- sum(  top5n$inv_simple_between_inv  )
+          # top5_s_bon_inv_real <- sum(  top5n$inv_simple_bonacich_inv  )
+          # top5_sp_clos_inv_real <- sum(  top5n$inv_spring_clos_inv  )
+          # top5_sp_betw_inv_real <- sum(  top5n$inv_spring_between_inv  )
+          # top5_sp_bon_inv_real <- sum(  top5n$inv_spring_bonacich_inv  )
+          # 
           outcome <- unique( subsh.camp$dissident_board_seats_won )
           
           if (  outcome %in% c(0) ){won_brep_dummy = 0}else{ won_brep_dummy = 1 }
@@ -337,6 +369,8 @@ for (i in 1: length(cusip.list) ){
           condition = sucfail %in% c("Success", "Partial")
           if ( T %in% condition  ){success_of_stated_obj=1}else{success_of_stated_obj=0}
           
+          success_objective_1 = as.numeric(success_objective_1)
+
           iss_supports = subsh.camp$iss_supports
           glass_lewis_supports = subsh.camp$glass_lewis_supports
           
@@ -347,12 +381,22 @@ for (i in 1: length(cusip.list) ){
           stock_exchange_primary = unique( subsh.camp$stock_exchange_primary )
           holder_type = unique( subsh.camp$holder_type )
           
-          
+          # activist_appearance_number = subsh.camp$activist_appearance_number
+
+          activist_objective_1 = factor( subsh.camp$activist_objective_1, levels = levels( campaign_type_match$objective ) )
+          activist_obj_type_1 = campaign_type_match$category[which(campaign_type_match$objective == activist_objective_1)]
+          # activist_objective_2 = factor( subsh.camp$activist_objective_2, levels = levels( campaign_type_match$objective ) )
+          # activist_obj_type_2 = campaign_type_match$category[which(campaign_type_match$objective == activist_objective_2)]
+          # if( length(activist_obj_type_2 ) == 0) { activist_obj_type_2 = NA}
+          # activist_objective_3 = factor( subsh.camp$activist_objective_3, levels = levels( campaign_type_match$objective ) )
+          # activist_obj_type_3 = unique( campaign_type_match$category[which(campaign_type_match$objective == activist_objective_3)] )
+          # if( length(activist_obj_type_3) == 0) {activist_obj_type_3 = NA}
+          # 
           output <- data.frame(campaign.id, cusip6, age_activist, 
                                investor.number,active.activist.number, 
                                total.activist.number, won_brep_dummy, won_brep_percent,
                                total.activist.size,activist.size.vweighted,
-                               success_of_stated_obj, active.activist.size,
+                               success_of_stated_obj,  active.activist.size,
                                activist.size.average,beginning.quarter,ending.quarter, success_objective_1, success_objective_2, success_objective_3,
                                iss_supports,glass_lewis_supports,
                                act_s_clos, act_s_betw, act_s_bon, act_sp_clos, 
@@ -389,7 +433,20 @@ for (i in 1: length(cusip.list) ){
                                top5_w_sd_s, top5_w_sd_spr, top5_w_norm_s,
                                top5_w_norm_spr, top5_share,
                                top5_perc,top5_perc_nw_s , top5_perc_nw_spr,
-                               top5_perc_nw_s ,top5_perc_nw_spr )
+                               top5_perc_nw_s ,top5_perc_nw_spr, 
+                               active_percent, dissident_group_ownership_percent
+                               # ,top20_s_clos_inv_real, top20_s_betw_inv_real, top20_s_bon_inv_real,  
+                               # top20_sp_clos_inv_real, top20_sp_betw_inv_real, top20_sp_bon_inv_real,
+                               # top10_s_clos_inv_real, top10_s_betw_inv_real, top10_s_bon_inv_real,  
+                               # top10_sp_clos_inv_real, top10_sp_betw_inv_real, top10_sp_bon_inv_real,
+                               # top5_s_clos_inv_real, top5_s_betw_inv_real, top5_s_bon_inv_real,  
+                               # top5_sp_clos_inv_real, top5_sp_betw_inv_real, top5_sp_bon_inv_real
+                               # ,activist_appearance_number
+                               # ,activist_objective_1
+                               , activist_obj_type_1
+                               # ,activist_objective_2, activist_obj_type_2,
+                               # activist_objective_3, activist_obj_type_3
+                               )
           short.data <- rbind(short.data, output)
           
         }
@@ -439,7 +496,6 @@ load("reduced_campaign")
 short.data.compust = unique( merge(short.data.compust, reduced_campaign, by.x="campaign.id", by.y= "campaign_id", all.x=TRUE) )
 
 save(short.data.compust, file="short.data.compust")
-# 
 
 # load("short.data.compust")
 # save(short.data.compust, file="short.data.compust_old")
