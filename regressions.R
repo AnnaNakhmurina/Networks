@@ -70,8 +70,7 @@ reg5 <- felm( success_of_stated_obj ~ log_top5_perc + log_act_num_con +log(activ
 summary(reg5)
 
 
-ols3_output = capture.output(stargazer( 
-                                       reg1, reg2, reg3, reg4, reg5,
+ols3_output = capture.output(stargazer( reg1, reg2, reg3, reg4, reg5,
                                        type = "latex",
                                        title = "Number of large investors and activist's success",
                                        font.size = "tiny", float.env="table", header = FALSE,
@@ -82,7 +81,7 @@ ols3_output = capture.output(stargazer(
                                        add.lines = list( c("Activist type FE ", "Yes", "Yes", "Yes", "Yes", "Yes") )
                                        , covariate.labels = c("Num.large investors", "Perc. large ownership",
                                                             "Num. activist connections",
-                                                            ,"Exit after board demands",
+                                                            "Exit after board demands",
                                                             "Exit after proxy fight", "Perc. activist ownership",
                                                             "Poison pill", "Firm age",
                                                             "log(Market capitalization)", "Leverage",
@@ -93,7 +92,7 @@ ols3_output = capture.output(stargazer(
                                        )
                                        , table.placement = "H" ))                                               
 
-note.latex <- "\\multicolumn{6}{l} {\\parbox[t]{13cm}{ \\textit{Notes:} OLS regression  of the equation $Campaign\\_outcome = \\alpha+ \\beta_1Network\\_support + \\beta_2Activist\\_power + \\beta_3Activist\\_cost + Controls + e$.
+note.latex <- "\\multicolumn{6}{l} {\\parbox[t]{15cm}{ \\textit{Notes:} OLS regression  of the equation $Campaign\\_outcome = \\alpha+ \\beta_1Network\\_support + \\beta_2Activist\\_power + \\beta_3Activist\\_cost + Controls + e$.
 \\textit{Success\\_of\\_stated\\_goals} is an indicator of fulfillment of activists' demands.  \\textit{Num. large investors} is the number of investors that fall into top 5\\% holding percentile and have shares in the target. \\textit{Num. activist connections} is total number of connections that activist has with large investors in the target.  \\textit{Perc. large ownership} is aggregate percentage of the target owned by large investors.  \\textit{Perc. activist ownership} corresponds to the aggregate percentage owned by activists. \\textit{Exit after board demands} is a dummy which is equal to one if the campaign ends with activist's demands and does not go to proxy fight. \\textit{Exit after proxy fight} is an indicator that proxy fight happened over the campaign.  \\textit{Poison pill} is an indicator that the firm had poison pill prior to the campaign or adopted it in response to the campaign.  \\textit{Firm age} is the age of the target. \\textit{Market capitalization} is market capitalization of the target at the start of campaign. \\textit{Leverage} is the long-term leverage of the target firm. \\textit{MTB} is market-to-book value of the target firm at the start of the campaign. \\textit{ROA} is return-on-assets of the target at the start of the campaign. \\textit{Short term objective} is a dummy equal to one if activist's demands include payout of divideds, share repurchase programs or sale of the company. \\textit{Num. campaigns by activist} is total number of campaigns that activist was involved in the sample. Each regression contains year fixed effects and an activist's type (e.g. hedge fund, pension fund, etc.) fixed effects. Robust standard errors are clustered by the campaign category (capital structure, business strategy, sell company, governance or other). Table contains standard significance levels: *p<0.1; **p<0.05, ***p<0.01 }} \\\\"
 ols3_output[grepl("Note",ols3_output)] <- note.latex
 
@@ -222,7 +221,7 @@ centr = capture.output(stargazer(centr1, #centr2,
                                  type = "latex",
                                  dep.var.labels   = c("Success of stated goals"),
                                  title = "Activist investors' centrality and activist's success",
-                                 covariate.labels = c("Simple closeness centrality", #"RI closeness centrality",
+                                 covariate.labels = c("Closeness centrality", #"RI closeness centrality",
                                                       "Simple betweenness centrality", "RI betweenness centrality",
                                                       "RI con. weighted by perc.",
                                                       "Import. activist ownership",
@@ -230,7 +229,7 @@ centr = capture.output(stargazer(centr1, #centr2,
                                                       "Exit after proxy fight",
                                                       "Poison pill", "Firm age",
                                                       "log(Market capitalization)", "Leverage", "MTB", "ROA", "Short term objective", "Num. campaigns by activist"),
-                                 add.lines = list(c("Activist type FE ", "Yes", "Yes", "Yes", "Yes")), 
+                                 add.lines = list(c("Activist type FE ", "Yes", "Yes", "Yes"), c("Year FE ", "Yes", "Yes", "Yes")), 
                                  font.size = "tiny", float.env="table",header = FALSE,
                                  omit.stat=c("f", "ser"),
                                  omit = c("year"), 
@@ -239,7 +238,7 @@ centr = capture.output(stargazer(centr1, #centr2,
                                  table.placement = "H"
                                  ))
 
-note.latex <- "\\multicolumn{4}{l} {\\parbox[t]{15cm}{ \\textit{Notes:} OLS regression  of the equation $Campaign\\_outcome = \\alpha + \\beta_1Investor\\_importance+ \\beta_2Network\\_support + \\beta_3Activist\\_power + \\beta_4Activist\\_cost + Controls + e$.
+note.latex <- "\\multicolumn{4}{l} {\\parbox[t]{11cm}{ \\textit{Notes:} OLS regression  of the equation $Campaign\\_outcome = \\alpha + \\beta_1Investor\\_importance+ \\beta_2Network\\_support + \\beta_3Activist\\_power + \\beta_4Activist\\_cost + Controls + e$.
 \\textit{success\\_of\\_stated\\_goals} is an indicator of fulfillment of activists' demands. \\textit{Simple closeness centrality} is an aggregate closeness centrality computed with simple network. \\textit{RI closeness centrality} is an aggregate closeness centrality computed with relative influence network. \\textit{Simple betweennes centrality} is an aggregate betweennes centrality computed with simple network. \\textit{RI betweenness centrality} is an aggregate betweennes centrality computed with relative influence network. 
 \\textit{RI con. weighted by perc.} corresponds to the relative influence strength of connection weighted by large investor's ownership in the target and aggregated across large investors. \\\textit{Perc. activist ownership} corresponds to the aggregate percentage owned by activists. \\textit{Exit after board demands} is a dummy which is equal to one if the campaign ends with activist's demands and does not go to proxy fight. \\textit{Exit after proxy fight} is an indicator that proxy fight happened over the campaign.  \\textit{Poison pill} is an indicator that the firm had poison pill prior to the campaign or adopted it in response to the campaign.  \\textit{Firm age} is the age of the target. \\textit{Market capitalization} is market capitalization of the target at the start of campaign. \\textit{Leverage} is the long-term leverage of the target firm. \\textit{MTB} is market-to-book value of the target firm at the start of the campaign. \\textit{ROA} is return-on-assets of the target at the start of the campaign. \\textit{Perc. large ownership} is aggregate percentage of the target owned by large investors. \\textit{Short term objective} is a dummy equal to one if activist's demands include payout of divideds, share repurchase programs or sale of the company. \\textit{Num. campaigns by activist} is total number of campaigns that activist was involved in the sample. Each regression contains year fixed effects and an activist's type (e.g. hedge fund, pension fund, etc.) fixed effects. Robust standard errors are clustered by the campaign category (capital structure, business strategy, sell company, governance or other). Table contains standard significance levels: *p<0.1; **p<0.05, ***p<0.01 }} \\\\"
 centr[grepl("Note",centr)] <- note.latex
@@ -252,6 +251,7 @@ writeLines( centr, "D:/Dropbox/Activist paper/Analysis/new_code/tables/table_7.t
 #--------------------------------------
 
 load("winlose_top20_control_other")
+saveRDS( winlose, "OLD_winlose_top20_control_other.rds" )
 
 winning = winlose[ which(winlose$win == 1 ), ]
 losing = winlose[ which(winlose$win == 0 ), ]
@@ -314,8 +314,9 @@ did_out = capture.output(stargazer(  did_20_win, did_20_lose, did_30,
 
 note.latex <- "\\multicolumn{7}{l} {\\parbox[t]{18cm}{ \\textit{Notes:} OLS regression  of the equation \\\\	$	\\Delta(Connection\\_strength) = \\alpha +\\beta_1 Connected\\_to\\_active\\_activist  +\\beta_2 Activist\\_wins + \\beta_3Target\\_shareholder + \\gamma_1Connected\\_to\\_active\\_activist \\cdot Activist\\_wins+ \\gamma_2 Connected\\_to\\_active\\_activist \\cdot Target\\_shareholder+ \\gamma_3 Activist\\_wins \\cdot Target\\_shareholder+ \\delta Connected\\_to\\_active\\_activist \\cdot Activist\\_wins \\cdot Target\\_shareholder+Controls +\\epsilon $. In the first column, 	$\\Delta(Simple)$ corresponds to the change in the simple strength (number of connections). In the second column, $\\Delta(RI)$ corresponds to the change in the relative influence strength. $Connected\\_to\\_active\\_activist$ is an indicator that passive investor is connected to an active activist, $Activist\\_wins$ is a dummy of activist's victory, and $Target\\_shareholder$ is an indicator that passive investor is a shareholder of the target company. Each regression contains year fixed effects and an activist's type (e.g. hedge fund, pension fund, etc.) fixed effects. Robust standard errors are clustered by the campaign category (capital structure, business strategy, sell company, governance or other). Table contains standard significance levels: *p<0.1; **p<0.05, ***p<0.01 }} \\\\"
 did_out[grepl("Note",did_out)] <- note.latex
+did_out <-gsub('t ?= ?([$-.0-9]*)', '(\\1)', did_out)
 
-writeLines( did_out, "D:/Dropbox/Activist paper/Analysis/new_code/tables/did_alll.tex" )
+writeLines( did_out, "D:/Dropbox/Activist paper/Analysis/new_code/tables/did_all.tex" )
 
 
 

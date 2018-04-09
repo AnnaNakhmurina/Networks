@@ -87,7 +87,7 @@ header-includes:
 \input{"D:/Dropbox/Activist paper/Analysis/new_code/tables/table_6.tex"}
 \input{"D:/Dropbox/Activist paper/Analysis/new_code/tables/table_7.tex"}
 
-\input{"D:/Dropbox/Activist paper/Analysis/new_code/tables/did_alll.tex"}
+\input{"D:/Dropbox/Activist paper/Analysis/new_code/tables/did_all.tex"}
 
 \clearpage
 \section{Appendix III. Robustness.}

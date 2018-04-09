@@ -358,7 +358,7 @@ print(upper_tex,
       include.rownames=TRUE,
       include.colnames = TRUE,
       type="latex",
-      
+      size="\\fontsize{8pt}{8pt}\\selectfont",
       floating = FALSE,
       hline.after = NULL, comment = FALSE,
       file="D:/Dropbox/Activist paper/Analysis/new_code/tables/upper_tex.tex")
